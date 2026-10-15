@@ -1,5 +1,7 @@
 import calendar
+import os
 from datetime import date, timedelta, datetime
+from typing import Optional, List, Dict, Any, Tuple
 import html
 import json
 import pandas as pd
@@ -16,7 +18,7 @@ st.set_page_config(
     page_title="Relax | Menstrual Health & Wellness",
     page_icon="🌸",
     layout="wide",
-    initial_sidebar_state="expanded"
+    initial_sidebar_state="collapsed"
 )
 
 # Initialize persistent SQLite database
@@ -30,11 +32,23 @@ st.markdown("""
 /* Hide default Streamlit menu and footer for clean app feel */
 #MainMenu {visibility: hidden;}
 footer {visibility: hidden;}
+header[data-testid="stHeader"] {
+    background: transparent !important;
+    z-index: 1 !important;
+}
 
-/* Compact page padding */
+/* Safe page padding: ensures top header data and cards are fully visible below mobile notch & Streamlit top bar */
 .block-container {
-    padding-top: 1.8rem !important;
-    padding-bottom: 2rem !important;
+    padding-top: 4.5rem !important;
+    padding-bottom: 95px !important;
+}
+
+@media (max-width: 768px) {
+    .block-container {
+        padding-top: 5.2rem !important; /* safe clearance under phone notch and browser top bar */
+        padding-left: 0.9rem !important;
+        padding-right: 0.9rem !important;
+    }
 }
 
 /* Compact KPI Metric Cards */
@@ -46,28 +60,28 @@ footer {visibility: hidden;}
     font-weight: 600 !important;
 }
 
-/* Relax Hero & Status Cards (Small, Compact Font - Size 8) */
+/* Relax Hero & Status Badges Row - Clean Neutral, No Green Header Card */
 .hero-card {
-    background: linear-gradient(135deg, #fff1f2 0%, #fdf2f8 50%, #f5f3ff 100%);
-    border: 1px solid #fbcfe8;
-    border-radius: 10px;
-    padding: 6px 12px;
-    margin-bottom: 8px;
-    box-shadow: 0 1px 4px rgba(244, 114, 182, 0.05);
+    background: transparent !important;
+    border: none !important;
+    padding: 2px 0px 6px 0px !important;
+    margin-top: 4px !important;
+    margin-bottom: 8px !important;
+    box-shadow: none !important;
     font-size: 8pt !important;
 }
 .hero-title {
-    font-size: 8pt !important;
-    font-weight: 700;
-    color: #9d174d;
-    margin-bottom: 2px;
-    line-height: 1.2;
+    font-size: 8.5pt !important;
+    font-weight: 700 !important;
+    color: #1e293b !important;
+    margin-bottom: 3px !important;
+    line-height: 1.3 !important;
 }
 .hero-subtitle {
     font-size: 8pt !important;
-    color: #4b5563;
-    margin-bottom: 5px;
-    line-height: 1.2;
+    color: #475569 !important;
+    margin-bottom: 6px !important;
+    line-height: 1.3 !important;
 }
 .hero-badges {
     display: flex;
@@ -88,9 +102,9 @@ footer {visibility: hidden;}
 .badge-health { background: #e0f2fe; color: #0369a1; border: 1px solid #bae6fd; }
 .health-chip {
     display: inline-block;
-    background: #fdf2f8;
-    color: #9d174d;
-    border: 1px solid #fbcfe8;
+    background: #f8fafc;
+    color: #334155;
+    border: 1px solid #cbd5e1;
     border-radius: 6px;
     padding: 1px 5px;
     font-size: 7.5pt !important;
@@ -99,19 +113,273 @@ footer {visibility: hidden;}
     margin-bottom: 2px;
 }
 
-/* Compact Buttons with small icons throughout the app */
-div[data-testid="stButton"] button {
+/* Person Face Account Button: No circle, transparent background, translucent man color */
+[data-testid="stPopover"] {
+    display: flex !important;
+    justify-content: flex-end !important;
+}
+[data-testid="stPopover"] > div {
+    border: none !important;
+    background: transparent !important;
+    box-shadow: none !important;
+}
+[data-testid="stPopover"] button,
+[data-testid="stPopover"] button:focus,
+[data-testid="stPopover"] button:active,
+[data-testid="stPopover"] button:focus-visible {
+    border-radius: 8px !important;
+    border: none !important;
+    outline: none !important;
+    background: transparent !important;
+    background-color: transparent !important;
+    box-shadow: none !important;
+    -webkit-box-shadow: none !important;
     padding: 2px 8px !important;
-    min-height: 26px !important;
-    height: 26px !important;
-    font-size: 0.72rem !important;
+    height: auto !important;
+    min-height: 28px !important;
+    width: auto !important;
+    display: inline-flex !important;
+    align-items: center !important;
+    justify-content: flex-end !important;
+    gap: 6px !important;
+    color: #334155 !important;
+    font-size: 0.92rem !important;
+    font-weight: 600 !important;
+    cursor: pointer !important;
+    transition: all 0.15s ease-in-out !important;
+}
+[data-testid="stPopover"] button:hover {
+    background: rgba(15, 118, 110, 0.08) !important;
+    border: none !important;
+    outline: none !important;
+    box-shadow: none !important;
+    color: #0f766e !important;
+}
+[data-testid="stPopover"] button span[data-testid="stIconMaterial"],
+[data-testid="stPopover"] button span.material-symbols-rounded,
+[data-testid="stPopover"] button .material-symbols-rounded,
+[data-testid="stPopover"] button svg {
+    color: rgba(15, 118, 110, 0.40) !important; /* translucent / transparent man icon color */
+    fill: rgba(15, 118, 110, 0.40) !important;
+    opacity: 0.60 !important;
+    font-size: 1.25rem !important;
+}
+
+
+/* Fixed Non-Movable Bottom Mobile Navigation Bar */
+.st-key-bottom_nav_bar {
+    position: fixed !important;
+    bottom: 0 !important;
+    left: 0 !important;
+    right: 0 !important;
+    width: 100vw !important;
+    background: rgba(255, 255, 255, 0.98) !important;
+    backdrop-filter: blur(14px) !important;
+    -webkit-backdrop-filter: blur(14px) !important;
+    border-top: 1px solid #e2e8f0 !important;
+    padding: 6px 8px 8px 8px !important;
+    z-index: 999999 !important;
+    box-shadow: 0 -4px 16px rgba(0, 0, 0, 0.08) !important;
+    display: flex !important;
+    justify-content: center !important;
+}
+
+/* Force side-by-side horizontal row on ALL screens, especially mobile phones */
+.st-key-bottom_nav_bar [data-testid="stHorizontalBlock"] {
+    display: flex !important;
+    flex-direction: row !important;
+    flex-wrap: nowrap !important;
+    justify-content: space-between !important;
+    align-items: center !important;
+    gap: 8px !important;
+    width: 100% !important;
+    max-width: 400px !important;
+    margin: 0 auto !important;
+}
+
+.st-key-bottom_nav_bar [data-testid="stColumn"],
+.st-key-bottom_nav_bar [data-testid="column"] {
+    width: auto !important;
+    min-width: 0 !important;
+    flex: 1 1 0 !important;
+    display: flex !important;
+    justify-content: center !important;
+    margin: 0 !important;
+    padding: 0 !important;
+}
+
+.st-key-bottom_nav_bar [data-testid="stButton"] {
+    width: 100% !important;
+    margin: 0 !important;
+}
+
+/* Base style: Small, light orange and yellow button */
+.st-key-bottom_nav_bar [data-testid="stButton"] button {
+    font-size: 1.05rem !important;
+    padding: 2px 0 !important;
+    min-height: 34px !important;
+    height: 34px !important;
+    border-radius: 10px !important;
+    display: flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    transition: all 0.2s ease !important;
+    background: linear-gradient(135deg, #fed7aa 0%, #fef08a 100%) !important;
+    border: 1px solid #fde047 !important;
+    color: #451a03 !important;
+    box-shadow: 0 1px 3px rgba(245, 158, 11, 0.15) !important;
+}
+
+.st-key-bottom_nav_bar [data-testid="stButton"] button p {
+    font-size: 1.05rem !important;
+    line-height: 1 !important;
+    margin: 0 !important;
+}
+
+/* Highlight selected button to GREEN */
+.st-key-bottom_nav_bar [data-testid="stButton"] button[kind="primary"],
+.st-key-bottom_nav_bar [data-testid="stButton"] button[data-testid="baseButton-primary"] {
+    background: linear-gradient(135deg, #86efac 0%, #22c55e 100%) !important;
+    border: 2px solid #16a34a !important;
+    color: #ffffff !important;
+    box-shadow: 0 2px 8px rgba(34, 197, 94, 0.45) !important;
+    transform: translateY(-2px) !important;
+}
+
+/* Compact In-Page Buttons (Previous/Next Month, Actions) */
+div[data-testid="stButton"]:not(.st-key-bottom_nav_bar [data-testid="stButton"]) button {
+    padding: 2px 8px !important;
+    min-height: 28px !important;
+    height: 28px !important;
+    font-size: 0.78rem !important;
     border-radius: 6px !important;
     line-height: 1 !important;
 }
-div[data-testid="stButton"] button p {
-    font-size: 0.72rem !important;
+div[data-testid="stButton"]:not(.st-key-bottom_nav_bar [data-testid="stButton"]) button p {
+    font-size: 0.78rem !important;
     line-height: 1 !important;
     margin: 0 !important;
+}
+
+/* Compact Symptom & Mood Selection Tiles (Small, Horizontally Placed) */
+div[data-testid="stButtonGroup"],
+.stButtonGroup {
+    display: flex !important;
+    flex-wrap: wrap !important;
+    flex-direction: row !important;
+    gap: 6px !important;
+    row-gap: 7px !important;
+    align-items: center !important;
+    margin-top: 3px !important;
+    margin-bottom: 8px !important;
+}
+
+div[data-testid="stButtonGroup"] button,
+.stButtonGroup button,
+div[data-testid="stButtonGroup"] [data-testid="stBaseButton-pills"],
+div[data-testid="stButtonGroup"] [role="button"],
+div[data-testid="stButtonGroup"] [role="radio"],
+div[data-testid="stButtonGroup"] [role="checkbox"] {
+    font-size: 0.82rem !important;
+    padding: 4px 10px !important;
+    min-height: 29px !important;
+    height: auto !important;
+    border-radius: 14px !important;
+    font-weight: 500 !important;
+    border: 1px solid #cbd5e1 !important;
+    background: #ffffff !important;
+    color: #334155 !important;
+    cursor: pointer !important;
+    transition: all 0.15s ease-in-out !important;
+    box-shadow: 0 1px 2px rgba(0, 0, 0, 0.04) !important;
+    display: inline-flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+}
+
+div[data-testid="stButtonGroup"] button p,
+.stButtonGroup button p {
+    font-size: 0.82rem !important;
+    line-height: 1.2 !important;
+    margin: 0 !important;
+}
+
+div[data-testid="stButtonGroup"] button:hover,
+.stButtonGroup button:hover {
+    border-color: #0f766e !important;
+    background: #f0fdf4 !important;
+    color: #0f766e !important;
+    transform: translateY(-1px) !important;
+}
+
+/* Active / Selected Tile Highlight */
+div[data-testid="stButtonGroup"] button[data-selected="true"],
+div[data-testid="stButtonGroup"] button[data-selected],
+.stButtonGroup button[data-selected="true"],
+.stButtonGroup button[data-selected],
+div[data-testid="stButtonGroup"] [data-selected="true"],
+div[data-testid="stButtonGroup"] [data-selected],
+div[data-testid="stButtonGroup"] button[aria-checked="true"],
+div[data-testid="stButtonGroup"] [aria-checked="true"] {
+    background: #dcfce7 !important;
+    border: 1.5px solid #16a34a !important;
+    color: #15803d !important;
+    font-weight: 600 !important;
+    box-shadow: 0 2px 5px rgba(22, 163, 74, 0.22) !important;
+}
+
+div[data-testid="stButtonGroup"] button[data-selected="true"] p,
+div[data-testid="stButtonGroup"] button[data-selected] p,
+.stButtonGroup button[data-selected="true"] p,
+.stButtonGroup button[data-selected] p {
+    color: #15803d !important;
+    font-weight: 600 !important;
+}
+
+/* Horizontal Smooth Scrolling Calendar Container (3 Months View, Scroll Right for Previous Months) */
+.calendar-scroll-wrapper {
+    position: relative !important;
+    display: flex !important;
+    flex-direction: row !important;
+    overflow-x: auto !important;
+    overflow-y: hidden !important;
+    gap: 14px !important;
+    padding: 6px 2px 14px 2px !important;
+    scroll-behavior: auto !important;
+    -webkit-overflow-scrolling: touch !important;
+    scroll-snap-type: x proximity !important;
+}
+.calendar-scroll-wrapper::-webkit-scrollbar {
+    height: 8px !important;
+}
+.calendar-scroll-wrapper::-webkit-scrollbar-track {
+    background: #f1f5f9 !important;
+    border-radius: 8px !important;
+}
+.calendar-scroll-wrapper::-webkit-scrollbar-thumb {
+    background: #94a3b8 !important;
+    border-radius: 8px !important;
+}
+.calendar-scroll-wrapper::-webkit-scrollbar-thumb:hover {
+    background: #64748b !important;
+}
+.calendar-scroll-item {
+    flex: 0 0 calc((100% - 28px) / 3) !important;
+    min-width: 295px !important;
+    box-sizing: border-box !important;
+    scroll-snap-align: start !important;
+}
+@media (max-width: 950px) {
+    .calendar-scroll-item {
+        flex: 0 0 calc((100% - 14px) / 2) !important;
+        min-width: 280px !important;
+    }
+}
+@media (max-width: 600px) {
+    .calendar-scroll-item {
+        flex: 0 0 88% !important;
+        min-width: 260px !important;
+    }
 }
 
 /* Relax Calendar Table */
@@ -119,14 +387,16 @@ div[data-testid="stButton"] button p {
     border: 1px solid #e2e8f0;
     border-radius: 14px;
     padding: 12px;
-    margin-bottom: 14px;
+    margin-bottom: 0px !important;
     background: #ffffff;
     box-shadow: 0 2px 6px rgba(0,0,0,0.04);
+    height: 100%;
+    box-sizing: border-box;
 }
 .calendar h3 {
     margin-top: 0;
     margin-bottom: 8px;
-    font-size: 1.05rem;
+    font-size: 1.02rem;
     color: #1e293b;
     font-weight: 600;
 }
@@ -144,30 +414,339 @@ div[data-testid="stButton"] button p {
     font-weight: 600;
 }
 .calendar td {
-    height: 65px;
+    height: 62px;
     vertical-align: top;
-    padding: 5px;
+    padding: 0px !important;
     border: 1px solid #f1f5f9;
     font-size: .85rem;
     transition: all 0.15s ease-in-out;
     cursor: pointer;
     position: relative;
 }
+.calendar td a.cal-day-cell-link {
+    display: flex !important;
+    flex-direction: column !important;
+    align-items: flex-start !important;
+    justify-content: flex-start !important;
+    width: 100% !important;
+    height: 100% !important;
+    padding: 4px !important;
+    color: inherit !important;
+    text-decoration: none !important;
+    box-sizing: border-box !important;
+}
 .calendar td:hover:not(.empty) {
     transform: scale(1.06);
     z-index: 10;
-    box-shadow: 0 6px 16px rgba(236, 72, 153, 0.22);
-    border: 2px solid #ec4899;
+    box-shadow: 0 6px 16px rgba(14, 116, 144, 0.22);
+    border: 2px solid #0f766e;
 }
 .calendar td.empty { background: #f8fafc; cursor: default; }
 .calendar td.bleeding { background: #fee2e2; }
 .calendar td.estimated { background: #fff1f2; border: 1.5px dashed #f43f5e; }
-.calendar td.fertile { background: #dcfce7; }
+.calendar td.fertile { background: transparent; }
 .calendar td.ovulation { background: #f3e8ff; border: 2px solid #a855f7; }
-.calendar td.pms { background: #fef3c7; }
+.calendar td.pms { background: transparent; }
 .calendar td.forecast { border: 2px dashed #94a3b8; }
 .calendar td.today { box-shadow: inset 0 0 0 2px #2563eb; }
 .calendar td.logged { border-bottom: 3px solid #ec4899; }
+.cal-marker-symbol {
+    font-size: 0.55rem !important;
+    line-height: 1 !important;
+    vertical-align: middle !important;
+    margin-top: 1px !important;
+    display: inline-block !important;
+}
+
+/* Year Selector Pills: Smooth Horizontal Scrolling & Compact Design */
+.st-key-cal_pills_year [data-testid="stPills"] {
+    display: flex !important;
+    flex-wrap: nowrap !important;
+    overflow-x: auto !important;
+    gap: 4px !important;
+    padding-bottom: 3px !important;
+    scrollbar-width: thin !important;
+}
+.st-key-cal_pills_year [data-testid="stPills"] button {
+    font-size: 0.78rem !important;
+    padding: 2px 10px !important;
+    white-space: nowrap !important;
+    flex-shrink: 0 !important;
+}
+
+/* Sleek, Small & Designed Navigation Buttons (Left, Today, Right) */
+.st-key-cal_nav_buttons_container {
+    display: flex !important;
+    justify-content: flex-end !important;
+    align-items: center !important;
+}
+.st-key-cal_nav_buttons_container [data-testid="stHorizontalBlock"] {
+    display: flex !important;
+    flex-direction: row !important;
+    align-items: center !important;
+    justify-content: flex-end !important;
+    gap: 5px !important;
+}
+.st-key-cal_nav_buttons_container [data-testid="stColumn"] {
+    width: auto !important;
+    min-width: 0 !important;
+    flex: 0 0 auto !important;
+}
+.st-key-cal_nav_buttons_container button {
+    height: 28px !important;
+    min-height: 28px !important;
+    border-radius: 14px !important;
+    font-size: 0.76rem !important;
+    font-weight: 600 !important;
+    padding: 0 10px !important;
+    background: #ffffff !important;
+    border: 1px solid #e2e8f0 !important;
+    color: #334155 !important;
+    box-shadow: 0 1px 2px rgba(0, 0, 0, 0.04) !important;
+    display: inline-flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    cursor: pointer !important;
+    transition: all 0.15s ease-in-out !important;
+}
+.st-key-cal_nav_buttons_container button:hover {
+    background: #f8fafc !important;
+    border-color: #cbd5e1 !important;
+    color: #0f172a !important;
+    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.08) !important;
+    transform: translateY(-1px) !important;
+}
+.st-key-cal_nav_buttons_container button:active {
+    transform: translateY(0px) !important;
+}
+.calendar td.selected-cal-day {
+    box-shadow: inset 0 0 0 2.5px #0f766e, 0 0 12px rgba(15, 118, 110, 0.45) !important;
+    background-color: #f0fdfa !important;
+    border: 2px solid #0f766e !important;
+    z-index: 11 !important;
+}
+
+/* Image 3 Pill Badge Styling for Date Selector Popover */
+.st-key-cal_pill_container {
+    margin-top: 4px !important;
+    margin-bottom: 8px !important;
+}
+.st-key-cal_pill_container [data-testid="stHorizontalBlock"] {
+    align-items: center !important;
+    display: flex !important;
+    flex-direction: row !important;
+    flex-wrap: wrap !important;
+    gap: 10px !important;
+}
+.st-key-cal_pill_container [data-testid="stColumn"] {
+    width: auto !important;
+    min-width: 0 !important;
+    display: flex !important;
+    align-items: center !important;
+}
+
+/* Previous Image 1 Date Pill Button Styling */
+.st-key-cal_pill_date [data-testid="stPopover"] button {
+    background: #f8fafc !important;
+    background-color: #f8fafc !important;
+    border: 1px solid #cbd5e1 !important;
+    border-radius: 20px !important;
+    padding: 0 14px !important;
+    font-size: 0.85rem !important;
+    font-weight: 600 !important;
+    color: #334155 !important;
+    box-shadow: 0 1px 2px rgba(0, 0, 0, 0.04) !important;
+    height: 32px !important;
+    min-height: 32px !important;
+    display: inline-flex !important;
+    align-items: center !important;
+    gap: 6px !important;
+    cursor: pointer !important;
+    transition: all 0.15s ease-in-out !important;
+}
+.st-key-cal_pill_date [data-testid="stPopover"] button:hover {
+    background: #f1f5f9 !important;
+    border-color: #94a3b8 !important;
+}
+.st-key-cal_pill_date [data-testid="stPopover"] button svg {
+    display: inline-block !important;
+    color: #64748b !important;
+    width: 14px !important;
+    height: 14px !important;
+}
+
+/* Top Bar Actions Row (Diet & Account tightly grouped with NO big gap) */
+.st-key-top_actions_bar {
+    display: flex !important;
+    justify-content: flex-end !important;
+    align-items: center !important;
+    width: 100% !important;
+}
+.st-key-top_actions_bar [data-testid="stHorizontalBlock"] {
+    display: flex !important;
+    flex-direction: row !important;
+    justify-content: flex-end !important;
+    align-items: center !important;
+    gap: 8px !important;
+    width: auto !important;
+}
+.st-key-top_actions_bar [data-testid="stColumn"] {
+    width: auto !important;
+    min-width: 0 !important;
+    flex: 0 0 auto !important;
+    display: flex !important;
+    align-items: center !important;
+}
+.st-key-top_actions_bar [data-testid="stColumn"]:last-child [data-testid="stPopover"] button,
+.st-key-top_actions_bar [data-testid="stPopover"]:last-child button {
+    border-radius: 6px !important;
+    height: 32px !important;
+    min-height: 32px !important;
+    width: 32px !important;
+    min-width: 32px !important;
+    padding: 0 !important;
+    font-size: 1.15rem !important;
+    background: transparent !important;
+    background-color: transparent !important;
+    border: none !important;
+    color: #334155 !important;
+    display: inline-flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    box-shadow: none !important;
+    cursor: pointer !important;
+    transition: all 0.15s ease-in-out !important;
+}
+.st-key-top_actions_bar [data-testid="stColumn"]:last-child [data-testid="stPopover"] button:hover,
+.st-key-top_actions_bar [data-testid="stPopover"]:last-child button:hover {
+    background: rgba(0, 0, 0, 0.04) !important;
+    border: none !important;
+    box-shadow: none !important;
+    color: #0f172a !important;
+    transform: scale(1.15) !important;
+}
+/* Hide the chevron dropdown arrow so only the account icon is shown */
+.st-key-top_actions_bar [data-testid="stColumn"]:last-child [data-testid="stPopover"] button svg:not([data-testid="stIconMaterial"]),
+.st-key-top_actions_bar [data-testid="stPopover"]:last-child button svg:not([data-testid="stIconMaterial"]),
+.st-key-top_actions_bar [data-testid="stColumn"]:last-child [data-testid="stPopover"] button svg[data-testid="stPopoverChevron"],
+.st-key-top_actions_bar [data-testid="stPopover"]:last-child button svg[data-testid="stPopoverChevron"] {
+    display: none !important;
+}
+.st-key-top_actions_bar [data-testid="stColumn"]:last-child [data-testid="stPopover"] button svg[data-testid="stIconMaterial"],
+.st-key-top_actions_bar [data-testid="stPopover"]:last-child button svg[data-testid="stIconMaterial"] {
+    display: inline-block !important;
+    width: 22px !important;
+    height: 22px !important;
+    color: #334155 !important;
+}
+.st-key-top_actions_bar [data-testid="stColumn"]:last-child [data-testid="stPopover"] button:hover svg[data-testid="stIconMaterial"],
+.st-key-top_actions_bar [data-testid="stPopover"]:last-child button:hover svg[data-testid="stIconMaterial"] {
+    color: #0f172a !important;
+}
+
+/* Diet Notification Icon Styling (Circle Removed) */
+.diet-notif-btn [data-testid="stPopover"] button,
+div.diet-notif-btn button,
+.st-key-diet_notif_top [data-testid="stPopover"] button,
+.st-key-diet_notif_sel [data-testid="stPopover"] button,
+.st-key-diet_notif_sym [data-testid="stPopover"] button {
+    background: transparent !important;
+    background-color: transparent !important;
+    border: none !important;
+    border-radius: 6px !important;
+    width: 32px !important;
+    height: 32px !important;
+    min-width: 32px !important;
+    min-height: 32px !important;
+    padding: 0 !important;
+    font-size: 1.25rem !important;
+    display: inline-flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    cursor: pointer !important;
+    box-shadow: none !important;
+    transition: all 0.15s ease-in-out !important;
+}
+.diet-notif-btn [data-testid="stPopover"] button:hover,
+div.diet-notif-btn button:hover,
+.st-key-diet_notif_top [data-testid="stPopover"] button:hover,
+.st-key-diet_notif_sel [data-testid="stPopover"] button:hover,
+.st-key-diet_notif_sym [data-testid="stPopover"] button:hover {
+    background: rgba(0, 0, 0, 0.04) !important;
+    border: none !important;
+    box-shadow: none !important;
+    transform: scale(1.15) !important;
+}
+.diet-notif-btn [data-testid="stPopover"] button svg,
+div.diet-notif-btn button svg,
+.st-key-diet_notif_top [data-testid="stPopover"] button svg,
+.st-key-diet_notif_sel [data-testid="stPopover"] button svg,
+.st-key-diet_notif_sym [data-testid="stPopover"] button svg {
+    display: none !important;
+}
+
+.st-key-cal_pill_container [data-testid="stCheckbox"] {
+    margin: 0 !important;
+    padding: 0 !important;
+    display: flex !important;
+    align-items: center !important;
+}
+.st-key-cal_pill_container [data-testid="stCheckbox"] label {
+    margin-bottom: 0 !important;
+    padding-top: 0 !important;
+}
+
+/* Image 4 Responsive Small Button for Daily Log */
+.st-key-log_action_buttons {
+    margin-top: 10px !important;
+    margin-bottom: 8px !important;
+}
+.st-key-log_action_buttons [data-testid="stHorizontalBlock"] {
+    display: flex !important;
+    flex-direction: row !important;
+    flex-wrap: wrap !important;
+    align-items: center !important;
+    gap: 10px !important;
+}
+.st-key-log_action_buttons [data-testid="stColumn"] {
+    width: auto !important;
+    min-width: 0 !important;
+    flex: 0 0 auto !important;
+}
+.st-key-log_action_buttons div[data-testid="stButton"] {
+    width: auto !important;
+    margin: 0 !important;
+}
+.st-key-log_action_buttons button {
+    height: 34px !important;
+    min-height: 34px !important;
+    padding: 4px 18px !important;
+    font-size: 0.85rem !important;
+    font-weight: 600 !important;
+    border-radius: 8px !important;
+    width: auto !important;
+    min-width: 120px !important;
+    display: inline-flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    line-height: 1.2 !important;
+    box-shadow: 0 1px 2px rgba(0, 0, 0, 0.05) !important;
+    transition: all 0.15s ease-in-out !important;
+}
+.st-key-log_action_buttons button p {
+    font-size: 0.85rem !important;
+    font-weight: 600 !important;
+    line-height: 1.2 !important;
+}
+@media (max-width: 600px) {
+    .st-key-log_action_buttons [data-testid="stColumn"] {
+        flex: 1 1 45% !important;
+    }
+    .st-key-log_action_buttons button {
+        width: 100% !important;
+        min-width: 0 !important;
+    }
+}
 </style>
 """, unsafe_allow_html=True)
 
@@ -252,7 +831,7 @@ def build_calendar_events(
             b_date = log_d + timedelta(days=day_idx)
             events[b_date] = {
                 "classes": ["bleeding", "logged"],
-                "marker": " 🩸",
+                "marker": "",
                 "phase": "Confirmed Historical Period 🩸",
                 "mood": "Logged menstrual bleeding",
                 "physical": "Confirmed period entry from your cycle history",
@@ -290,7 +869,7 @@ def build_calendar_events(
                     if d not in events:
                         events[d] = {
                             "classes": ["fertile"],
-                            "marker": " 🌱",
+                            "marker": "",
                             "phase": "High Fertility Window 🌱",
                             "mood": "Confident, vibrant, energetic",
                             "physical": "Clear stretchy cervical mucus",
@@ -303,7 +882,7 @@ def build_calendar_events(
                 if hist_ov not in events:
                     events[hist_ov] = {
                         "classes": ["ovulation", "fertile"],
-                        "marker": " 🟣",
+                        "marker": "",
                         "phase": "Ovulation Peak 🟣",
                         "mood": "Peak vitality and communicative energy",
                         "physical": "Mild one-sided pelvic twinge (mittelschmerz)",
@@ -332,7 +911,7 @@ def build_calendar_events(
                     if d not in events:
                         events[d] = {
                             "classes": ["pms"],
-                            "marker": " ✨",
+                            "marker": "",
                             "phase": "Pre-Menstrual Phase (PMS Window) ✨",
                             "mood": "Mood swings, irritability, sensitive cues",
                             "physical": "Mild bloating, breast tenderness, cravings",
@@ -356,7 +935,7 @@ def build_calendar_events(
                         if d not in events:
                             events[d] = {
                                 "classes": ["bleeding", "estimated"],
-                                "marker": " 🩸",
+                                "marker": "",
                                 "phase": "Estimated Period (Unlogged Month) 🩸",
                                 "mood": "Estimated menstrual cycle",
                                 "physical": f"Calculated based on your typical {cycle_length}-day cycle",
@@ -386,7 +965,7 @@ def build_calendar_events(
                         if d not in events:
                             events[d] = {
                                 "classes": ["fertile"],
-                                "marker": " 🌱",
+                                "marker": "",
                                 "phase": "High Fertility Window 🌱 (Estimated)",
                                 "mood": "Confident, upbeat, energetic",
                                 "physical": "Clear stretchy cervical mucus",
@@ -399,7 +978,7 @@ def build_calendar_events(
                     if est_ov not in events and est_ov < next_log_d:
                         events[est_ov] = {
                             "classes": ["ovulation", "fertile"],
-                            "marker": " 🟣",
+                            "marker": "",
                             "phase": "Ovulation Peak 🟣 (Estimated)",
                             "mood": "Peak vitality and communication",
                             "physical": "Estimated ovulation peak",
@@ -428,7 +1007,7 @@ def build_calendar_events(
                         if d not in events:
                             events[d] = {
                                 "classes": ["pms"],
-                                "marker": " ✨",
+                                "marker": "",
                                 "phase": "PMS Window ✨ (Estimated)",
                                 "mood": "Emotional sensitivity, irritability cues",
                                 "physical": "Mild bloating, breast tenderness",
@@ -439,11 +1018,11 @@ def build_calendar_events(
 
                     curr_est += timedelta(days=cycle_length)
 
-    # 1b. Project historical baseline for unlogged months before earliest logged period (up to 12 cycles / 1 year back)
+        # 1b. Project historical baseline for unlogged months before earliest logged period (up to 90 cycles / 7 years back)
     if sorted_logs:
         earliest_log = sorted_logs[0]
         curr_back = earliest_log - timedelta(days=cycle_length)
-        for _ in range(12):
+        for _ in range(90):
             back_bleed_end = curr_back + timedelta(days=period_length - 1)
             back_ov = curr_back + timedelta(days=cycle_length - 14)
             back_fertile_start = back_ov - timedelta(days=5)
@@ -456,7 +1035,7 @@ def build_calendar_events(
                 if d not in events:
                     events[d] = {
                         "classes": ["bleeding", "estimated"],
-                        "marker": " 🩸",
+                        "marker": "",
                         "phase": "Estimated Period (Historical Baseline) 🩸",
                         "mood": "Estimated menstrual cycle",
                         "physical": f"Calculated based on your typical {cycle_length}-day cycle",
@@ -486,7 +1065,7 @@ def build_calendar_events(
                 if d not in events:
                     events[d] = {
                         "classes": ["fertile"],
-                        "marker": " 🌱",
+                        "marker": "",
                         "phase": "High Fertility Window 🌱 (Estimated)",
                         "mood": "Confident and upbeat",
                         "physical": "Cervical mucus shifts",
@@ -499,7 +1078,7 @@ def build_calendar_events(
             if back_ov not in events:
                 events[back_ov] = {
                     "classes": ["ovulation", "fertile"],
-                    "marker": " 🟣",
+                    "marker": "",
                     "phase": "Ovulation Peak 🟣 (Estimated)",
                     "mood": "Peak vitality",
                     "physical": "Estimated ovulation",
@@ -528,7 +1107,7 @@ def build_calendar_events(
                 if d not in events:
                     events[d] = {
                         "classes": ["pms"],
-                        "marker": " ✨",
+                        "marker": "",
                         "phase": "PMS Window ✨ (Estimated)",
                         "mood": "Sensitive cues, irritability",
                         "physical": "Mild bloating",
@@ -555,7 +1134,7 @@ def build_calendar_events(
             if d not in events:
                 events[d] = {
                     "classes": ["bleeding"],
-                    "marker": " 🩸",
+                    "marker": "",
                     "phase": "Menstrual Phase (Period) 🩸",
                     "mood": "Low energy, reflective, introspection, quiet focus",
                     "physical": "Uterine cramps, fatigue, lower back ache, pelvic fullness",
@@ -585,7 +1164,7 @@ def build_calendar_events(
             if d not in events:
                 events[d] = {
                     "classes": ["fertile"],
-                    "marker": " 🌱",
+                    "marker": "",
                     "phase": "High Fertility Window 🌱",
                     "mood": "Confident, vibrant, outgoing, elevated libido, charismatic",
                     "physical": "Clear stretchy cervical mucus, heightened sensory perception",
@@ -598,7 +1177,7 @@ def build_calendar_events(
         if ov not in events:
             events[ov] = {
                 "classes": ["ovulation", "fertile"],
-                "marker": " 🟣",
+                "marker": "",
                 "phase": "Ovulation Peak 🟣",
                 "mood": "Peak vitality, assertive, sensual, upbeat, highly communicative",
                 "physical": "Mild one-sided pelvic twinge (mittelschmerz), peak conception chance",
@@ -627,7 +1206,7 @@ def build_calendar_events(
             if d not in events:
                 events[d] = {
                     "classes": ["pms"],
-                    "marker": " ✨",
+                    "marker": "",
                     "phase": "Pre-Menstrual Phase (PMS Window) ✨",
                     "mood": "Mood swings, irritability, emotional sensitivity, anxiety, lower patience",
                     "physical": "Bloating, breast tenderness, food cravings (sweets/salty), mild headache",
@@ -640,7 +1219,7 @@ def build_calendar_events(
         if next_p not in events:
             events[next_p] = {
                 "classes": ["forecast", "bleeding"],
-                "marker": " 🔮",
+                "marker": "",
                 "phase": "Forecasted Next Period 🔮",
                 "mood": "Readiness to slow down, cycle transition and reset",
                 "physical": f"Anticipated bleeding onset. Expected window: {window_str if window_str else 'On schedule'}",
@@ -666,11 +1245,14 @@ def build_calendar_events(
             
     return events
 
-def calendar_html(year: int, month: int, events: dict) -> str:
+def calendar_html(year: int, month: int, events: dict, selected_date: Optional[date] = None) -> str:
     cal = calendar.Calendar(firstweekday=0)
-    html_code = f"<div class='calendar'><h3>{calendar.month_name[month]} {year}</h3><table>"
-    html_code += "<tr>" + "".join(f"<th>{x}</th>" for x in ["Mon","Tue","Wed","Thu","Fri","Sat","Sun"]) + "</tr>"
     today = date.today()
+    tag_html = ""
+    if year == today.year and month == today.month:
+        tag_html = " <span style='font-size: 7pt; font-weight: 600; background: #e0f2fe; color: #0369a1; padding: 2px 6px; border-radius: 6px; vertical-align: middle;'>Current</span>"
+    html_code = f"<div class='calendar'><h3>{calendar.month_name[month]} {year}{tag_html}</h3><table>"
+    html_code += "<tr>" + "".join(f"<th>{x}</th>" for x in ["Mon","Tue","Wed","Thu","Fri","Sat","Sun"]) + "</tr>"
     for week in cal.monthdayscalendar(year, month):
         html_code += "<tr>"
         for day_num in week:
@@ -683,14 +1265,41 @@ def calendar_html(year: int, month: int, events: dict) -> str:
             markers = ""
             if d == today:
                 classes.append("today")
+            if selected_date and d == selected_date:
+                classes.append("selected-cal-day")
 
             if info:
                 classes.extend(info.get("classes", []))
-                markers = info.get("marker", "")
+                raw_markers = info.get("marker", "")
+                # Strip old bleeding and decorative symbols, preserve phase indicator symbols
+                for sym in ["🩸", "🌿", "🔮", "🌼"]:
+                    raw_markers = raw_markers.replace(sym, "")
+                markers = raw_markers.strip()
+
+                # Phase symbols (smaller than day number):
+                # 1. Ovulation peak shows 🟣
+                if "ovulation" in classes and "🟣" not in markers:
+                    markers = (markers + " 🟣").strip()
+                # 2. Fertile window shows 🌱 (fertility symbol)
+                elif "fertile" in classes and "🌱" not in markers:
+                    markers = (markers + " 🌱").strip()
+                # 3. PMS window shows 🌙 (pre-menstrual moon symbol)
+                elif "pms" in classes and "🌙" not in markers:
+                    markers = (markers + " 🌙").strip()
+
+                clean_phase = info.get('phase', 'Normal')
+                for sym in ["🩸", "🌿", "🔮", "🌼"]:
+                    clean_phase = clean_phase.replace(sym, "").strip()
+                if "ovulation" in classes and "🟣" not in clean_phase:
+                    clean_phase = f"{clean_phase} 🟣"
+                elif "fertile" in classes and "🌱" not in clean_phase:
+                    clean_phase = f"{clean_phase} 🌱"
+                elif "pms" in classes and "🌙" not in clean_phase:
+                    clean_phase = f"{clean_phase} 🌙"
                 
                 tooltip_parts = [
                     f"📅 {d.strftime('%a, %d %b %Y')}",
-                    f"📍 Phase: {info.get('phase', 'Normal')}",
+                    f"📍 Phase: {clean_phase}",
                 ]
                 
                 # If user logged custom entry for this day
@@ -722,11 +1331,24 @@ def calendar_html(year: int, month: int, events: dict) -> str:
 
             escaped_tooltip = html.escape(tooltip_text, quote=True).replace("\n", "&#10;")
             class_text = " ".join(set(classes))
-            html_code += f"<td class='{class_text}' title='{escaped_tooltip}'><b>{day_num}</b><span style='font-size: 0.72rem;'>{markers}</span></td>"
+            date_link = f"?cal_date={d.isoformat()}"
+            marker_html = f"<span class='cal-marker-symbol'>{markers}</span>" if markers else ""
+            html_code += f"<td class='{class_text}' title='{escaped_tooltip}'><a href='{date_link}' target='_self' class='cal-day-cell-link'><b>{day_num}</b>{marker_html}</a></td>"
         html_code += "</tr>"
     return html_code + "</table></div>"
 
-def generate_ics(cycles: pd.DataFrame, username: str) -> str:
+def generate_ics(
+    cycles: pd.DataFrame,
+    username: str,
+    include_period: bool = True,
+    period_label: str = "🌸 Rest Time",
+    include_ovulation: bool = True,
+    ovulation_label: str = "🟣 Ovulation Peak",
+    include_fertile: bool = True,
+    fertile_label: str = "🌱 High Fertility Window",
+    include_pms: bool = False,
+    pms_label: str = "✨ Cozy Care Window"
+) -> str:
     ics_lines = [
         "BEGIN:VCALENDAR",
         "VERSION:2.0",
@@ -735,66 +1357,91 @@ def generate_ics(cycles: pd.DataFrame, username: str) -> str:
         "METHOD:PUBLISH"
     ]
     for _, row in cycles.iterrows():
-        # Period Window
-        start_str = row["Start"].strftime("%Y%m%d")
-        end_str = (row["Bleeding end"] + timedelta(days=1)).strftime("%Y%m%d")
-        window_note = row.get("Expected Window (± Margin)", "Regular cycle")
-        ics_lines.extend([
-            "BEGIN:VEVENT",
-            f"SUMMARY:🩸 Period - Relax ({username})",
-            f"DTSTART;VALUE=DATE:{start_str}",
-            f"DTEND;VALUE=DATE:{end_str}",
-            f"DESCRIPTION:Predicted menstrual period by Relax app. Fluctuation window: {window_note}",
-            "STATUS:CONFIRMED",
-            "END:VEVENT"
-        ])
-        # Ovulation Peak
-        ov_str = row["Ovulation estimate"].strftime("%Y%m%d")
-        ov_end = (row["Ovulation estimate"] + timedelta(days=1)).strftime("%Y%m%d")
-        ics_lines.extend([
-            "BEGIN:VEVENT",
-            f"SUMMARY:🟣 Ovulation Peak - Relax ({username})",
-            f"DTSTART;VALUE=DATE:{ov_str}",
-            f"DTEND;VALUE=DATE:{ov_end}",
-            f"DESCRIPTION:Estimated peak ovulation day by Relax app.",
-            "STATUS:CONFIRMED",
-            "END:VEVENT"
-        ])
+        # 1. Bleeding / Period / Rest Time
+        if include_period:
+            start_str = row["Start"].strftime("%Y%m%d")
+            end_str = (row["Bleeding end"] + timedelta(days=1)).strftime("%Y%m%d")
+            window_note = row.get("Expected Window (± Margin)", "Regular cycle")
+            summary_name = period_label if period_label.strip() else f"Rest Time ({username})"
+            ics_lines.extend([
+                "BEGIN:VEVENT",
+                f"SUMMARY:{summary_name}",
+                f"DTSTART;VALUE=DATE:{start_str}",
+                f"DTEND;VALUE=DATE:{end_str}",
+                f"DESCRIPTION:Relax sync. Expected window: {window_note}",
+                "STATUS:CONFIRMED",
+                "END:VEVENT"
+            ])
+
+        # 2. Ovulation Peak
+        if include_ovulation:
+            ov_str = row["Ovulation estimate"].strftime("%Y%m%d")
+            ov_end = (row["Ovulation estimate"] + timedelta(days=1)).strftime("%Y%m%d")
+            summary_name = ovulation_label if ovulation_label.strip() else f"Ovulation ({username})"
+            ics_lines.extend([
+                "BEGIN:VEVENT",
+                f"SUMMARY:{summary_name}",
+                f"DTSTART;VALUE=DATE:{ov_str}",
+                f"DTEND;VALUE=DATE:{ov_end}",
+                f"DESCRIPTION:Estimated peak ovulation day.",
+                "STATUS:CONFIRMED",
+                "END:VEVENT"
+            ])
+
+        # 3. Fertile Window
+        if include_fertile:
+            f_start = row["Ovulation estimate"] - timedelta(days=5)
+            f_end = row["Ovulation estimate"] + timedelta(days=1)
+            f_start_str = f_start.strftime("%Y%m%d")
+            f_end_str = f_end.strftime("%Y%m%d")
+            summary_name = fertile_label if fertile_label.strip() else f"Fertile Window ({username})"
+            ics_lines.extend([
+                "BEGIN:VEVENT",
+                f"SUMMARY:{summary_name}",
+                f"DTSTART;VALUE=DATE:{f_start_str}",
+                f"DTEND;VALUE=DATE:{f_end_str}",
+                f"DESCRIPTION:Estimated high fertility window.",
+                "STATUS:CONFIRMED",
+                "END:VEVENT"
+            ])
+
+        # 4. PMS Window
+        if include_pms:
+            pms_start = row["Next period"] - timedelta(days=6)
+            pms_end = row["Next period"]
+            pms_start_str = pms_start.strftime("%Y%m%d")
+            pms_end_str = pms_end.strftime("%Y%m%d")
+            summary_name = pms_label if pms_label.strip() else f"PMS Window ({username})"
+            ics_lines.extend([
+                "BEGIN:VEVENT",
+                f"SUMMARY:{summary_name}",
+                f"DTSTART;VALUE=DATE:{pms_start_str}",
+                f"DTEND;VALUE=DATE:{pms_end_str}",
+                f"DESCRIPTION:Pre-menstrual gentle self-care window.",
+                "STATUS:CONFIRMED",
+                "END:VEVENT"
+            ])
+
     ics_lines.append("END:VCALENDAR")
     return "\r\n".join(ics_lines)
 
 # ---------------------------------------------------------
-# Sidebar: User Account & Database Profile
+# User Account & Database Profile Setup
 # ---------------------------------------------------------
-st.sidebar.markdown("### 🌸 User Account & Profile")
-
 all_users = db.get_all_users()
 user_names = [u["username"] for u in all_users]
-
 db_stats = db.get_database_stats()
-st.sidebar.caption(f"💾 **Database:** `{db_stats['database_file']}` (Auto-saved 🟢)")
 
-selected_option = st.sidebar.selectbox(
-    "Active Profile",
-    options=user_names + ["➕ Register New Account"],
-    index=user_names.index("Krishna") if "Krishna" in user_names else 0
-)
+# Retrieve active user from session state or default to Krishna
+if "selected_username" not in st.session_state:
+    st.session_state["selected_username"] = "Krishna" if "Krishna" in user_names else (user_names[0] if user_names else "Krishna")
 
-if selected_option == "➕ Register New Account":
-    new_username = st.sidebar.text_input("Enter your name / username", placeholder="e.g. Sarah, Maya")
-    new_pin = st.sidebar.text_input("Security PIN / Password (optional)", type="password", placeholder="e.g. 1234", help="Protects your personal cycle and health data on this device.")
-    col_reg1, col_reg2 = st.sidebar.columns(2)
-    with col_reg1:
-        if st.button("Register & Save", type="primary") and new_username.strip():
-            success, msg, created_user = db.register_user(new_username.strip(), new_pin)
-            if success:
-                st.sidebar.success(msg)
-                st.rerun()
-            else:
-                st.sidebar.error(msg)
-    current_user = all_users[0] if all_users else db.get_or_create_user("Krishna")
+matched_users = [u for u in all_users if u["username"] == st.session_state["selected_username"]]
+if matched_users:
+    current_user = matched_users[0]
 else:
-    current_user = [u for u in all_users if u["username"] == selected_option][0]
+    current_user = all_users[0] if all_users else db.get_or_create_user("Krishna")
+    st.session_state["selected_username"] = current_user["username"]
 
 user_id = current_user["id"]
 username = current_user["username"]
@@ -804,28 +1451,62 @@ user_has_pin = bool(current_user.get("pin_hash"))
 auth_session_key = f"auth_unlocked_{user_id}"
 
 if user_has_pin and not st.session_state.get(auth_session_key, False):
-    st.sidebar.warning(f"🔒 Profile **{username}** is protected by a PIN.")
-    entered_pin = st.sidebar.text_input("Enter PIN to unlock", type="password", key=f"pin_input_{user_id}")
-    if st.sidebar.button("🔓 Unlock Account"):
-        success, msg, _ = db.verify_user_login(username, entered_pin)
-        if success:
-            st.session_state[auth_session_key] = True
-            st.sidebar.success("Account unlocked!")
-            st.rerun()
-        else:
-            st.sidebar.error(msg)
-            st.stop()
-    else:
-        st.stop()
+    st.markdown("<div style='height: 20px;'></div>", unsafe_allow_html=True)
+    lk_c1, lk_c2, lk_c3 = st.columns([1.3, 1.4, 1.3])
+    with lk_c2:
+        st.markdown(f"""
+        <div style="background: #ffffff; border: 1px solid #e2e8f0; border-radius: 14px; padding: 14px 16px; box-shadow: 0 2px 10px rgba(0,0,0,0.04); text-align: center;">
+            <div style="font-size: 1.4rem; margin-bottom: 2px;">🌸</div>
+            <div style="font-size: 1.05rem; font-weight: 700; color: #1e293b;">Relax &bull; Private Health Log</div>
+            <div style="font-size: 0.80rem; color: #64748b; margin-top: 2px;">Profile <b>{username}</b> is protected by a PIN.</div>
+        </div>
+        """, unsafe_allow_html=True)
+        
+        st.markdown("<div style='margin-top: 10px;'></div>", unsafe_allow_html=True)
+        entered_pin = st.text_input("Enter PIN to unlock", type="password", key=f"pin_unlock_input_{user_id}", label_visibility="collapsed", placeholder="Enter PIN to unlock")
+        if st.button("🔓 Unlock Account", type="primary", use_container_width=True, key=f"btn_unlock_{user_id}"):
+            success, msg, _ = db.verify_user_login(username, entered_pin)
+            if success:
+                st.session_state[auth_session_key] = True
+                st.rerun()
+            else:
+                st.error(msg)
+                
+        # Password / PIN Recovery when user forgets on the lock screen
+        sec_info = db.get_user_security_info(user_id)
+        saved_q = sec_info.get("recovery_question") or "What is your favorite comfort food?"
+        with st.expander("❓ Forgot PIN?", expanded=False):
+            st.caption(f"**Security Question:** {saved_q}")
+            rec_ans = st.text_input("Security Answer", type="password", key=f"lk_rec_ans_{user_id}", placeholder="Answer to question")
+            lr1, lr2 = st.columns(2)
+            with lr1:
+                new_p1 = st.text_input("New PIN", type="password", key=f"lk_new_p1_{user_id}", placeholder="New PIN")
+            with lr2:
+                new_p2 = st.text_input("Confirm PIN", type="password", key=f"lk_new_p2_{user_id}", placeholder="Confirm PIN")
+            if st.button("🔑 Reset PIN & Unlock", key=f"btn_lk_reset_{user_id}", use_container_width=True):
+                if not new_p1 or not new_p2:
+                    st.error("Please enter and confirm your new PIN.")
+                elif new_p1 != new_p2:
+                    st.error("New PINs do not match.")
+                else:
+                    ok, r_msg = db.reset_user_pin_with_recovery(user_id, rec_ans.strip(), new_p1)
+                    if ok:
+                        st.session_state[auth_session_key] = True
+                        st.success(f"✅ {r_msg}")
+                        st.rerun()
+                    else:
+                        st.error(r_msg)
+    st.stop()
 
 # Fetch historical cycle dates for this user
 user_logs = db.get_user_cycle_logs(user_id)
 
 # ---------------------------------------------------------
-# Sidebar: Cycle Parameters & Period Logger
+# Sidebar: Typical Cycle Baseline Defaults
 # ---------------------------------------------------------
 st.sidebar.markdown("---")
-st.sidebar.markdown("### ⚙️ Cycle Settings")
+st.sidebar.markdown("### ⚙️ Typical Cycle Baseline")
+st.sidebar.caption("Set baseline length & duration. *(Note: You can log new period dates and daily symptoms directly using the Calendar!)*")
 
 # Default latest start date
 if user_logs:
@@ -889,11 +1570,11 @@ if len(user_logs) >= 2:
         regularity_msg = f"Average of {len(valid_intervals)} past cycles ({avg_interval} days)"
 
 # ---------------------------------------------------------
-# Sidebar: Personal Health & Thyroid Factors
+# Sidebar: Medications & Health Factors
 # ---------------------------------------------------------
 st.sidebar.markdown("---")
-st.sidebar.markdown("### 🩺 Health & Thyroid Profile")
-st.sidebar.caption("Log thyroid or personal health factors to calculate period fluctuations and uncertainty windows.")
+st.sidebar.markdown("### 💊 Medications")
+st.sidebar.caption("Track medications, thyroid treatment, hormonal supplements & factors altering period timing.")
 
 user_thyroid = current_user.get("thyroid_status") or "None / Normal Thyroid"
 if user_thyroid == "None":
@@ -915,7 +1596,7 @@ thyroid_options = [
 curr_thyroid_idx = thyroid_options.index(user_thyroid) if user_thyroid in thyroid_options else 0
 
 selected_thyroid = st.sidebar.selectbox(
-    "Thyroid Condition",
+    "Thyroid Condition / Medication",
     options=thyroid_options,
     index=curr_thyroid_idx,
     help="Underactive or overactive thyroid significantly alters TRH, prolactin, and ovulation timing."
@@ -931,7 +1612,7 @@ condition_choices = [
 valid_user_conds = [c for c in user_conditions if c in condition_choices]
 
 selected_conditions = st.sidebar.multiselect(
-    "Other Health Issues",
+    "Other Health Issues / Hormonal Rx",
     options=condition_choices,
     default=valid_user_conds,
     help="Select any diagnosed or suspected conditions affecting your cycle."
@@ -947,10 +1628,10 @@ selected_stress = st.sidebar.selectbox(
     help="Cortisol suppresses GnRH pulsatility and can postpone ovulation."
 )
 
-if st.sidebar.button("💾 Save Health Profile"):
+if st.sidebar.button("💾 Save Medications Profile"):
     conds_str = ", ".join(selected_conditions)
     db.update_user_health_profile(user_id, selected_thyroid, conds_str, selected_stress)
-    st.sidebar.success("Health profile updated! Period fluctuations recalculated.")
+    st.sidebar.success("Medications & health factors updated! Period fluctuations recalculated.")
     st.rerun()
 
 # ---------------------------------------------------------
@@ -966,27 +1647,16 @@ health_res = health_engine.calculate_health_fluctuations(
 fluctuation_margin = health_res["fluctuation_margin"]
 
 # ---------------------------------------------------------
-# Main App Header & Relax Branding
+# Compute All Cycles & Phase Determination (Globally Available)
 # ---------------------------------------------------------
-st.markdown(f"""
-<div style="display: flex; align-items: baseline; gap: 8px; margin-bottom: 6px;">
-    <span style="font-size: 1rem; font-weight: 700; color: #9d174d;">🌸 Relax</span>
-    <span style="font-size: 8pt; color: #64748b;">Personalized menstrual wellness & cycle tracking for <b>{username}</b></span>
-</div>
-""", unsafe_allow_html=True)
-
-# Compute All Cycles from start_date forward through today and into the future for the next 2 full years (28 cycles)
-cycles = build_cycles(start_date, cycle_length_used, period_length, future_cycles=28, fluctuation_margin=fluctuation_margin)
+# Compute All Cycles from start_date forward through today and into the future for 10+ years (140 cycles)
+cycles = build_cycles(start_date, cycle_length_used, period_length, future_cycles=140, fluctuation_margin=fluctuation_margin)
 
 # Fetch custom daily symptom logs
 user_symptoms = db.get_daily_symptoms(user_id)
 
-# ---------------------------------------------------------
-# Current Cycle Phase & Countdown (Hero Banner)
-# ---------------------------------------------------------
-today = date.today()
-
 # Identify active cycle currently in progress for today
+today = date.today()
 current_rows = cycles[cycles["is_current"]]
 if len(current_rows) > 0:
     active_cycle = current_rows.iloc[0]
@@ -1029,6 +1699,182 @@ else:
     phase_name = "Pre-Menstrual Phase (PMS Window) ✨"
     phase_badge = "badge-countdown"
 
+# Build calendar events globally so all views and popovers can inspect dates
+events = build_calendar_events(
+    cycles=cycles,
+    user_symptoms=user_symptoms,
+    phase_advisories=health_res["phase_advisories"],
+    user_logs=user_logs,
+    period_length=period_length,
+    cycle_length=cycle_length_used
+)
+
+def render_diet_notif_popover(phase_val: str, tooltip_hint: str = "Diet", container_key: str = "diet_notif"):
+    """Renders a sleek, cycle-synced diet notification icon popover."""
+    diet_info = health_engine.get_diet_suggestions(phase_val)
+    with st.container(key=container_key):
+        with st.popover("🥗", help="Diet"):
+            st.markdown(f"<div style='font-weight:700; font-size:1.05rem; color:#15803d; margin-bottom:2px;'>🥗 Diet</div>", unsafe_allow_html=True)
+            st.markdown(f"<div style='font-size:0.83rem; font-weight:600; color:#334155; margin-bottom:2px;'>{diet_info['name']}</div>", unsafe_allow_html=True)
+            st.markdown(f"<div style='font-size:0.78rem; color:#64748b; font-style:italic; margin-bottom:6px;'>{diet_info['tagline']}</div>", unsafe_allow_html=True)
+            
+            # Food image preview for this phase
+            p_img_key = diet_info.get("key", "luteal")
+            img_file = f"assets/{p_img_key}_diet.jpg"
+            if os.path.exists(img_file):
+                st.image(img_file, use_container_width=True)
+                
+            st.markdown(f"<div style='background:#f0fdf4; border-left:3px solid #22c55e; padding:5px 8px; border-radius:6px; font-size:0.78rem; color:#166534; margin-bottom:8px;'>🧬 <b>Biology:</b> {diet_info['biology']}</div>", unsafe_allow_html=True)
+            
+            st.markdown("<div style='font-weight:600; font-size:0.82rem; color:#1e293b; margin-bottom:2px;'>🌟 Recommended Superfoods:</div>", unsafe_allow_html=True)
+            for title, desc in diet_info["superfoods"][:3]:
+                st.markdown(f"<div style='font-size:0.78rem; margin-bottom:2px;'>• <b>{title}:</b> <span style='color:#475569;'>{desc}</span></div>", unsafe_allow_html=True)
+                
+            st.markdown("<div style='margin-top:6px;'></div>", unsafe_allow_html=True)
+            st.markdown("<div style='font-weight:600; font-size:0.82rem; color:#991b1b; margin-bottom:2px;'>🚫 Foods to Minimize:</div>", unsafe_allow_html=True)
+            for avoid_item in diet_info["foods_to_avoid"][:2]:
+                st.markdown(f"<div style='font-size:0.78rem; color:#64748b; margin-bottom:2px;'>• {avoid_item}</div>", unsafe_allow_html=True)
+            
+            st.markdown("<div style='margin-top:6px;'></div>", unsafe_allow_html=True)
+            st.caption("✨ Full 4-phase nutrition guide available in 💡 Insights tab.")
+
+# ---------------------------------------------------------
+# Main App Header & Relax Branding
+# ---------------------------------------------------------
+top_bar_col1, top_bar_col2 = st.columns([2.5, 1.5])
+
+with top_bar_col1:
+    st.markdown("""
+    <div style="margin-top: 2px; margin-bottom: 4px; display: flex; align-items: center; height: 100%;">
+        <span style="font-size: 1.25rem; font-weight: 700; color: #1e293b;">🌸 Relax</span>
+    </div>
+    """, unsafe_allow_html=True)
+
+with top_bar_col2:
+    with st.container(key="top_actions_bar"):
+        diet_col, acc_col = st.columns([1, 1], gap="small")
+        with diet_col:
+            render_diet_notif_popover(phase_name, "Diet", container_key="diet_notif_top")
+        with acc_col:
+            with st.popover("", icon=":material/person:", help="Account"):
+                st.markdown(f"<div style='font-size:1.15rem; font-weight:700; color:#1e293b; margin-bottom:2px;'>👤 {username}</div>", unsafe_allow_html=True)
+                st.caption(f"Profile: **{username}** &bull; {len(user_logs)} cycles logged")
+                st.markdown("---")
+            
+                # Security & PIN info
+                sec_info = db.get_user_security_info(user_id)
+                has_pin = sec_info["has_pin"]
+                saved_q = sec_info["recovery_question"] or "What is your favorite comfort food?"
+                
+                q_options = [
+                    "What is your favorite comfort food?",
+                    "What is the name of your first pet?",
+                    "What city were you born in?",
+                    "What was your childhood nickname?",
+                    "What is your secret safe word or lucky charm?"
+                ]
+                if saved_q and saved_q not in q_options:
+                    q_options.insert(0, saved_q)
+
+                # 1. Set PIN / PIN Security Section
+                pin_label = "🔒 Set PIN" if not has_pin else "🔑 PIN Security"
+                with st.expander(pin_label, expanded=False):
+                    if not has_pin:
+                        st.caption("Protect private records by setting a PIN:")
+                        new_p1 = st.text_input("New PIN", type="password", key="acc_set_new_p1", placeholder="Enter new PIN")
+                        new_p2 = st.text_input("Confirm PIN", type="password", key="acc_set_new_p2", placeholder="Confirm new PIN")
+                        sel_q = st.selectbox("Security Question", q_options, key="acc_set_sel_q")
+                        rec_ans = st.text_input("Recovery Answer", type="password", key="acc_set_rec_ans", placeholder="Answer used for PIN recovery")
+                        if st.button("🔒 Save PIN", key="acc_btn_save_pin", use_container_width=True):
+                            if not new_p1 or not new_p2:
+                                st.error("Please enter and confirm your PIN.")
+                            elif new_p1 != new_p2:
+                                st.error("PINs do not match.")
+                            elif not rec_ans.strip():
+                                st.error("Please provide a recovery answer.")
+                            else:
+                                db.set_user_security(user_id, new_p1, sel_q, rec_ans.strip())
+                                st.session_state[f"auth_unlocked_{user_id}"] = True
+                                st.success("✅ PIN activated!")
+                                st.rerun()
+                    else:
+                        st.markdown("<div style='background:#dcfce7; border: 1px solid #86efac; border-radius:6px; padding:4px 8px; font-size:0.78rem; color:#15803d; font-weight:600; margin-bottom:6px;'>🔒 PIN Protection Active</div>", unsafe_allow_html=True)
+                        sec_action = st.radio(
+                            "Security Action",
+                            ["Change PIN", "Forgot PIN", "Remove PIN"],
+                            horizontal=True,
+                            label_visibility="collapsed",
+                            key="acc_sec_radio_action"
+                        )
+                        
+                        if sec_action == "Change PIN":
+                            chg_old = st.text_input("Current PIN", type="password", key="acc_chg_old", placeholder="Current PIN")
+                            c_p1, c_p2 = st.columns(2)
+                            with c_p1:
+                                chg_p1 = st.text_input("New PIN", type="password", key="acc_chg_p1", placeholder="New PIN")
+                            with c_p2:
+                                chg_p2 = st.text_input("Confirm PIN", type="password", key="acc_chg_p2", placeholder="Confirm PIN")
+                            chg_q = st.selectbox("Security Question", q_options, index=q_options.index(saved_q) if saved_q in q_options else 0, key="acc_chg_q")
+                            chg_ans = st.text_input("New Recovery Answer (optional)", type="password", key="acc_chg_ans", placeholder="Optional new answer")
+                            if st.button("🔄 Update PIN", key="acc_btn_update_pin", use_container_width=True):
+                                ok, _, _ = db.verify_user_login(username, chg_old)
+                                if not ok:
+                                    st.error("Current PIN is incorrect.")
+                                elif not chg_p1 or not chg_p2:
+                                    st.error("New PIN cannot be empty.")
+                                elif chg_p1 != chg_p2:
+                                    st.error("New PINs do not match.")
+                                else:
+                                    if chg_ans.strip():
+                                        db.set_user_security(user_id, chg_p1, chg_q, chg_ans.strip())
+                                    else:
+                                        db.set_user_pin(user_id, chg_p1)
+                                    st.success("✅ PIN updated!")
+                                    st.rerun()
+                        elif sec_action == "Forgot PIN":
+                            st.caption(f"**Security Question:** {saved_q}")
+                            rec_in_ans = st.text_input("Answer to Security Question", type="password", key="acc_rec_in_ans", placeholder="Enter answer")
+                            r1, r2 = st.columns(2)
+                            with r1:
+                                reset_p1 = st.text_input("New PIN", type="password", key="acc_reset_p1", placeholder="New PIN")
+                            with r2:
+                                reset_p2 = st.text_input("Confirm PIN", type="password", key="acc_reset_p2", placeholder="Confirm PIN")
+                            if st.button("🔑 Reset PIN", key="acc_btn_rec_reset", use_container_width=True):
+                                if not reset_p1 or reset_p1 != reset_p2:
+                                    st.error("Please enter matching new PINs.")
+                                else:
+                                    ok, r_msg = db.reset_user_pin_with_recovery(user_id, rec_in_ans.strip(), reset_p1)
+                                    if ok:
+                                        st.session_state[f"auth_unlocked_{user_id}"] = True
+                                        st.success(f"✅ {r_msg}")
+                                        st.rerun()
+                                    else:
+                                        st.error(r_msg)
+                        elif sec_action == "Remove PIN":
+                            rm1, rm2 = st.columns([1.5, 1])
+                            with rm1:
+                                rem_pin = st.text_input("Enter PIN", type="password", key="acc_rem_pin", label_visibility="collapsed", placeholder="Enter PIN")
+                            with rm2:
+                                if st.button("Disable PIN", key="acc_btn_rem_pin", use_container_width=True):
+                                    ok, _, _ = db.verify_user_login(username, rem_pin)
+                                    if ok:
+                                        db.remove_user_pin(user_id)
+                                        st.info("PIN disabled.")
+                                        st.rerun()
+                                    else:
+                                        st.error("Incorrect PIN.")
+
+                # 2. Settings Section
+                with st.expander("⚙️ Setting", expanded=False):
+                    st.markdown(f"• **Typical Cycle Length:** `{current_user['typical_cycle_length']} days`")
+                    st.markdown(f"• **Period Duration:** `{current_user['typical_period_length']} days`")
+                    st.markdown(f"• **Recorded Cycles:** `{len(user_logs)} logs in database`")
+                    st.markdown(f"• **Predictability:** `{health_res['predictability_rating']}`")
+                    st.markdown(f"• **Thyroid Status:** `{selected_thyroid}`")
+                    st.markdown(f"• **Health Conditions:** `{', '.join(selected_conditions) if selected_conditions else 'None'}`")
+                    st.markdown(f"• **Stress Level:** `{selected_stress}`")
+                    st.caption("💡 Tip: Use the left sidebar to edit cycle duration, thyroid, or health conditions anytime.")
+
 tracked_note = ""
 if (today - start_date).days > 45:
     tracked_note = f" &bull; <i>Calculated from {start_date.strftime('%d %b %Y')} (Cycle #{int(active_cycle['Cycle'])})</i>"
@@ -1040,8 +1886,6 @@ if health_res["active_factors_summary"]:
 
 st.markdown(f"""
 <div class="hero-card">
-    <div class="hero-title">Welcome back, {username}!</div>
-    <div class="hero-subtitle">Today is <b>{today.strftime('%A, %d %B %Y')}</b> &bull; Cycle Day <b>{cycle_day if cycle_day > 0 else 'Upcoming'}</b>{tracked_note}</div>
     <div class="hero-badges">
         <span class="hero-badge {phase_badge}">Current Phase: {phase_name}</span>
         <span class="hero-badge badge-countdown">Next Period: {f'In {days_to_next_period} days' if days_to_next_period > 0 else 'Due today' if days_to_next_period == 0 else 'Overdue'} ({active_cycle['Next period'].strftime('%d %b')})</span>
@@ -1052,43 +1896,42 @@ st.markdown(f"""
 """, unsafe_allow_html=True)
 
 # ---------------------------------------------------------
-# Page Navigation (4 Compact Icon Views: Calendar, Chat, Insights, Symptoms Update)
+# Fixed Bottom Mobile Navigation Bar (Non-movable, Icons only, Text on hover)
 # ---------------------------------------------------------
 if "active_nav" not in st.session_state:
-    st.session_state["active_nav"] = "📅 Calendar"
+    st.session_state["active_nav"] = "📅"
 
-nav_c1, nav_c2, nav_c3, nav_c4, _ = st.columns([1, 0.9, 1, 1.3, 3])
+with st.container(key="bottom_nav_bar"):
+    nav_c1, nav_c2, nav_c3, nav_c4 = st.columns(4)
 
-with nav_c1:
-    is_sel = st.session_state["active_nav"] == "📅 Calendar"
-    if st.button("📅 Calendar", key="nav_btn_cal", use_container_width=True, type="primary" if is_sel else "secondary"):
-        st.session_state["active_nav"] = "📅 Calendar"
-        st.rerun()
+    with nav_c1:
+        is_sel = st.session_state["active_nav"] in ["📅", "📅 Calendar"]
+        if st.button("📅", key="nav_btn_cal", use_container_width=True, help="Calendar", type="primary" if is_sel else "secondary"):
+            st.session_state["active_nav"] = "📅"
+            st.rerun()
 
-with nav_c2:
-    is_sel = st.session_state["active_nav"] == "💬 Chat"
-    if st.button("💬 Chat", key="nav_btn_chat", use_container_width=True, type="primary" if is_sel else "secondary"):
-        st.session_state["active_nav"] = "💬 Chat"
-        st.rerun()
+    with nav_c2:
+        is_sel = st.session_state["active_nav"] in ["💬", "💬 Chat"]
+        if st.button("💬", key="nav_btn_chat", use_container_width=True, help="Chat Assistant", type="primary" if is_sel else "secondary"):
+            st.session_state["active_nav"] = "💬"
+            st.rerun()
 
-with nav_c3:
-    is_sel = st.session_state["active_nav"] == "💡 Insights"
-    if st.button("💡 Insights", key="nav_btn_ins", use_container_width=True, type="primary" if is_sel else "secondary"):
-        st.session_state["active_nav"] = "💡 Insights"
-        st.rerun()
+    with nav_c3:
+        is_sel = st.session_state["active_nav"] in ["💡", "💡 Insights"]
+        if st.button("💡", key="nav_btn_ins", use_container_width=True, help="Insights & Trends", type="primary" if is_sel else "secondary"):
+            st.session_state["active_nav"] = "💡"
+            st.rerun()
 
-with nav_c4:
-    is_sel = st.session_state["active_nav"] == "📝 Symptoms Update"
-    if st.button("📝 Symptoms Update", key="nav_btn_sym", use_container_width=True, type="primary" if is_sel else "secondary"):
-        st.session_state["active_nav"] = "📝 Symptoms Update"
-        st.rerun()
-
-st.markdown("<div style='margin-bottom: 8px;'></div>", unsafe_allow_html=True)
+    with nav_c4:
+        is_sel = st.session_state["active_nav"] in ["📝", "📝 Symptoms Update"]
+        if st.button("📝", key="nav_btn_sym", use_container_width=True, help="Symptoms Update", type="primary" if is_sel else "secondary"):
+            st.session_state["active_nav"] = "📝"
+            st.rerun()
 
 # =========================================================
 # VIEW 1: 📅 Calendar (Flo-Style 3-Month View & Export)
 # =========================================================
-if st.session_state["active_nav"] == "📅 Calendar":
+if st.session_state["active_nav"] in ["📅", "📅 Calendar"]:
     # 1. Build calendar events with ALL user history logs and future cycles
     events = build_calendar_events(
         cycles=cycles,
@@ -1099,103 +1942,304 @@ if st.session_state["active_nav"] == "📅 Calendar":
         cycle_length=cycle_length_used
     )
 
-    # 2. Determine latest period happened month as anchor
-    latest_happened_date = user_logs[-1] if user_logs else start_date
+    # Parse date if passed via query params (e.g. from calendar day link click)
+    if "cal_date" in st.query_params:
+        try:
+            q_date = date.fromisoformat(st.query_params["cal_date"])
+            st.session_state["cal_selected_date"] = q_date
+            st.session_state["cal_center_year"] = q_date.year
+            st.session_state["cal_center_month"] = q_date.month
+        except (ValueError, TypeError):
+            pass
+        st.query_params.clear()
 
-    # Track user profile changes to sync calendar anchor
-    if st.session_state.get("cal_user_id") != user_id:
-        st.session_state["cal_user_id"] = user_id
-        st.session_state["cal_nav_year"] = latest_happened_date.year
-        st.session_state["cal_nav_month"] = latest_happened_date.month
+    if "cal_center_year" not in st.session_state:
+        st.session_state["cal_center_year"] = today.year
+    if "cal_center_month" not in st.session_state:
+        st.session_state["cal_center_month"] = today.month
+    if "cal_selected_date" not in st.session_state:
+        st.session_state["cal_selected_date"] = today
 
-    if "cal_nav_year" not in st.session_state or "cal_nav_month" not in st.session_state:
-        st.session_state["cal_nav_year"] = latest_happened_date.year
-        st.session_state["cal_nav_month"] = latest_happened_date.month
+    selected_date_cal = st.session_state["cal_selected_date"]
+    center_y = int(st.session_state["cal_center_year"])
+    center_m = int(st.session_state["cal_center_month"])
 
-    st.markdown("### 📅 Cycle Calendar")
-    st.markdown("<div style='font-size: 8pt; color: #64748b; margin-bottom: 6px;'>🩸 Bleeding &nbsp;&bull;&nbsp; 🌱 Fertile window &nbsp;&bull;&nbsp; 🟣 Ovulation &nbsp;&bull;&nbsp; ✨ PMS window &nbsp;&bull;&nbsp; 🔮 Forecast &nbsp;&bull;&nbsp; 📝 Logged</div>", unsafe_allow_html=True)
-
-    # Flo-Style Navigation Bar: [ ◀ Previous ]  [ Month Range ]  [ Next ▶ ]  [ 📍 Latest Period ]
-    cal_nav1, cal_nav2, cal_nav3, cal_nav4 = st.columns([1.2, 2.6, 1.2, 1.4])
-
-    with cal_nav1:
-        if st.button("◀ Previous Month", key="btn_cal_prev", use_container_width=True, help="Move 1 month back into history"):
-            if st.session_state["cal_nav_month"] == 1:
-                st.session_state["cal_nav_month"] = 12
-                st.session_state["cal_nav_year"] -= 1
-            else:
-                st.session_state["cal_nav_month"] -= 1
-            st.rerun()
-
-    with cal_nav3:
-        if st.button("Next Month ▶", key="btn_cal_next", use_container_width=True, help="Move 1 month forward into forecast"):
-            if st.session_state["cal_nav_month"] == 12:
-                st.session_state["cal_nav_month"] = 1
-                st.session_state["cal_nav_year"] += 1
-            else:
-                st.session_state["cal_nav_month"] += 1
-            st.rerun()
-
-    with cal_nav4:
-        is_at_latest = (
-            st.session_state["cal_nav_year"] == latest_happened_date.year and
-            st.session_state["cal_nav_month"] == latest_happened_date.month
+    # Year Selector Pills & Quick Month Navigation (2020 to 2035)
+    nav_c1, nav_c2 = st.columns([3.5, 1.5])
+    with nav_c1:
+        years_list = list(range(2020, 2036))
+        picked_year = st.pills(
+            "Year",
+            options=years_list,
+            default=center_y if center_y in years_list else today.year,
+            selection_mode="single",
+            label_visibility="collapsed",
+            key="cal_pills_year"
         )
-        if st.button("📍 Latest Period", key="btn_cal_reset", use_container_width=True, disabled=is_at_latest, help="Jump back to latest period happened month"):
-            st.session_state["cal_nav_year"] = latest_happened_date.year
-            st.session_state["cal_nav_month"] = latest_happened_date.month
+        if picked_year and picked_year != center_y:
+            st.session_state["cal_center_year"] = picked_year
             st.rerun()
 
-    # Compute the 3 consecutive months: Month 1 = base month, Month 2 = +1, Month 3 = +2
-    cur_base_y = st.session_state["cal_nav_year"]
-    cur_base_m = st.session_state["cal_nav_month"]
+    with nav_c2:
+        with st.container(key="cal_nav_buttons_container"):
+            prev_c, today_c, next_c = st.columns([0.8, 1.4, 0.8], gap="small")
+            with prev_c:
+                if st.button("◀", key="btn_cal_prev", help="Previous Month", use_container_width=True):
+                    nm = center_m - 1
+                    ny = center_y
+                    if nm < 1:
+                        nm = 12
+                        ny -= 1
+                    st.session_state["cal_center_month"] = nm
+                    st.session_state["cal_center_year"] = max(years_list[0], ny)
+                    st.rerun()
+            with today_c:
+                if st.button("📍 Today", key="btn_cal_today", help="Jump to Current Month", use_container_width=True):
+                    st.session_state["cal_center_year"] = today.year
+                    st.session_state["cal_center_month"] = today.month
+                    st.session_state["cal_selected_date"] = today
+                    st.rerun()
+            with next_c:
+                if st.button("▶", key="btn_cal_next", help="Next Month", use_container_width=True):
+                    nm = center_m + 1
+                    ny = center_y
+                    if nm > 12:
+                        nm = 1
+                        ny += 1
+                    st.session_state["cal_center_month"] = nm
+                    st.session_state["cal_center_year"] = min(years_list[-1], ny)
+                    st.rerun()
 
-    display_months = []
-    for offset in range(3):
-        total_mo = (cur_base_m - 1) + offset
-        y = cur_base_y + total_mo // 12
-        m = (total_mo % 12) + 1
-        display_months.append((y, m))
+    # Calculate continuous 3-month window centered on active month
+    prev_m = center_m - 1
+    prev_y = center_y
+    if prev_m < 1:
+        prev_m = 12
+        prev_y -= 1
 
-    m_start_name = f"{calendar.month_name[display_months[0][1]]} {display_months[0][0]}"
-    m_end_name = f"{calendar.month_name[display_months[2][1]]} {display_months[2][0]}"
+    next_m = center_m + 1
+    next_y = center_y
+    if next_m > 12:
+        next_m = 1
+        next_y += 1
 
-    with cal_nav2:
-        st.markdown(
-            f"<div style='text-align:center; padding: 4px 0; font-weight: 700; font-size: 8pt; color: #9d174d; background: #fff1f2; border: 1px solid #fbcfe8; border-radius: 8px;'>"
-            f"🌸 {m_start_name} &nbsp;–&nbsp; {m_end_name}"
-            f"</div>",
-            unsafe_allow_html=True
+    scroll_months = [(prev_y, prev_m), (center_y, center_m), (next_y, next_m)]
+
+    # Render months inside a smooth horizontally scrollable container (3 months: Past, Current/Selected, Future)
+    month_cards_html = []
+    for year, month in scroll_months:
+        card_html = calendar_html(year, month, events, selected_date=selected_date_cal)
+        is_cur = (year == center_y and month == center_m)
+        item_id = "id='cal-current-month'" if is_cur else ""
+        month_cards_html.append(f"<div class='calendar-scroll-item' {item_id}>{card_html}</div>")
+
+    combined_scroll_html = f"<div class='calendar-scroll-wrapper' id='cal-scroll-wrapper'>{''.join(month_cards_html)}</div>"
+    st.markdown(combined_scroll_html, unsafe_allow_html=True)
+
+    # 3. Interactive Calendar Date Log & Cycle Update (Always shown for selected date)
+    st.markdown("<div id='log-update-section' style='padding-top: 14px;'></div>", unsafe_allow_html=True)
+    is_period_logged = selected_date_cal in user_logs
+    period_marked = False
+
+    with st.container(key="cal_pill_container"):
+        date_ctrl_c1, diet_icon_c, date_ctrl_c2 = st.columns([1.1, 0.35, 2.3])
+        with date_ctrl_c1:
+            with st.container(key="cal_pill_date"):
+                with st.popover(f"📅 {selected_date_cal.strftime('%d %b %Y')}", help="Select Date"):
+                    st.markdown("<p style='font-size:0.85rem; font-weight:600; margin-bottom:4px; color:#1e293b;'>Select Date:</p>", unsafe_allow_html=True)
+                    new_cal_date = st.date_input(
+                        "Select Date",
+                        value=selected_date_cal,
+                        label_visibility="collapsed",
+                        key=f"cal_picker_{selected_date_cal.isoformat()}"
+                    )
+                    if new_cal_date != selected_date_cal:
+                        st.session_state["cal_selected_date"] = new_cal_date
+                        st.session_state["cal_center_year"] = new_cal_date.year
+                        st.session_state["cal_center_month"] = new_cal_date.month
+                        st.rerun()
+
+        with diet_icon_c:
+            sel_ev = events.get(selected_date_cal, {})
+            sel_phase = sel_ev.get("phase", phase_name)
+            render_diet_notif_popover(sel_phase, "Diet", container_key="diet_notif_sel")
+
+        with date_ctrl_c2:
+            if is_period_logged:
+                p_col1, p_col2 = st.columns([2, 1.2])
+                with p_col1:
+                    st.markdown("<div style='background: #fee2e2; border: 1px solid #fca5a5; color: #991b1b; padding: 4px 10px; border-radius: 8px; font-size: 0.82rem; font-weight: 600; display: inline-flex; align-items: center;'>🩸 Period Start Logged (Day 1)</div>", unsafe_allow_html=True)
+                with p_col2:
+                    if st.button("❌ Remove Marker", key=f"btn_del_period_{selected_date_cal.isoformat()}", use_container_width=True):
+                        db.delete_cycle_log(user_id, selected_date_cal)
+                        st.success(f"Period start marker removed for {selected_date_cal.strftime('%d %b %Y')}")
+                        st.rerun()
+                period_marked = True
+            else:
+                period_marked = st.checkbox(
+                    "🩸 Mark this date as Period Start Date (Day 1)",
+                    value=False,
+                    key=f"chk_period_start_{selected_date_cal.isoformat()}",
+                    help="Check this box if your bleeding started on this date to update cycle predictions."
+                )
+
+    # Directly show the log update tiles (Flow, Energy, Mood, Physical Symptoms, Reflections)
+    existing_sym = user_symptoms.get(selected_date_cal, {})
+    cal_date_str = selected_date_cal.isoformat()
+    
+    flow_choices = ["None", "Spotting", "Light", "Medium", "Heavy"]
+    def_flow = existing_sym.get("flow", "None")
+    f_default = def_flow if def_flow in flow_choices else "None"
+    
+    energy_choices = ["High ⚡", "Moderate 🌿", "Low / Fatigued 😴"]
+    def_energy = existing_sym.get("energy", "Moderate 🌿")
+    e_default = def_energy if def_energy in energy_choices else "Moderate 🌿"
+    
+    all_mood_choices = ["Happy 😊", "Calm 🧘", "Energetic ⚡", "Confident ✨", "Sensitive 🥺", "Irritable 😤", "Anxious 😟", "Brain Fog 🌫️", "Low Mood 🌧️"]
+    raw_m = existing_sym.get("mood", "")
+    def_moods = [m.strip() for m in raw_m.split(",") if m.strip() and m.strip() in all_mood_choices]
+    
+    all_sym_choices = ["Cramps 💥", "Bloating 🎈", "Headache 🤕", "Tender Breasts 🌸", "Acne 💧", "Lower Back Pain 🦴", "Cravings 🍫", "Insomnia 🌙"]
+    raw_s = existing_sym.get("symptoms", "")
+    def_syms = [s.strip() for s in raw_s.split(",") if s.strip() in all_sym_choices]
+
+    st.markdown("<p style='font-size:0.88rem; font-weight:600; margin-top:8px; margin-bottom:2px; color:#334155;'>🩸 Flow Intensity</p>", unsafe_allow_html=True)
+    q_flow_sel = st.pills("Flow Intensity", flow_choices, default=f_default, selection_mode="single", label_visibility="collapsed", key=f"quick_flow_{cal_date_str}")
+    q_flow = q_flow_sel or "None"
+
+    st.markdown("<p style='font-size:0.88rem; font-weight:600; margin-top:8px; margin-bottom:2px; color:#334155;'>⚡ Energy Level</p>", unsafe_allow_html=True)
+    q_energy_sel = st.pills("Energy Level", energy_choices, default=e_default, selection_mode="single", label_visibility="collapsed", key=f"quick_energy_{cal_date_str}")
+    q_energy = q_energy_sel or "Moderate 🌿"
+
+    st.markdown("<p style='font-size:0.88rem; font-weight:600; margin-top:8px; margin-bottom:2px; color:#334155;'>🧘 Mood & Emotions (Select all that apply)</p>", unsafe_allow_html=True)
+    q_mood = st.pills("Mood & Emotions", all_mood_choices, default=def_moods, selection_mode="multi", label_visibility="collapsed", key=f"quick_mood_{cal_date_str}") or []
+
+    st.markdown("<p style='font-size:0.88rem; font-weight:600; margin-top:8px; margin-bottom:2px; color:#334155;'>🌸 Physical Symptoms (Select all that apply)</p>", unsafe_allow_html=True)
+    q_syms = st.pills("Physical Symptoms", all_sym_choices, default=def_syms, selection_mode="multi", label_visibility="collapsed", key=f"quick_syms_{cal_date_str}") or []
+
+    q_notes = st.text_area("Personal Notes & Self-Care Reflections", value=existing_sym.get("notes", ""), placeholder="E.g., chamomile tea helped cramps, slept 8 hours...", key=f"quick_notes_{cal_date_str}")
+    
+    with st.container(key="log_action_buttons"):
+        if existing_sym:
+            s_c1, s_c2, _ = st.columns([1, 1, 3])
+            with s_c1:
+                if st.button("💾 Save Log", type="primary", use_container_width=True, key=f"btn_quick_save_sym_{cal_date_str}"):
+                    mood_str = ", ".join(q_mood)
+                    sym_str = ", ".join(q_syms)
+                    db.save_daily_symptom(user_id, selected_date_cal, q_flow, mood_str, sym_str, q_energy, q_notes)
+                    if not is_period_logged and period_marked:
+                        db.add_cycle_log(user_id, selected_date_cal, "Logged via calendar")
+                    st.success(f"✅ Daily log saved for {selected_date_cal.strftime('%d %B %Y')}!")
+                    st.rerun()
+            with s_c2:
+                if st.button("🗑️ Delete Entry", key=f"btn_quick_del_sym_{cal_date_str}", use_container_width=True):
+                    db.delete_daily_symptom(user_id, selected_date_cal)
+                    st.info(f"Deleted daily log for {selected_date_cal.strftime('%d %b %Y')}")
+                    st.rerun()
+        else:
+            s_c1, _ = st.columns([1, 4])
+            with s_c1:
+                if st.button("💾 Save Log", type="primary", use_container_width=True, key=f"btn_quick_save_sym_{cal_date_str}"):
+                    mood_str = ", ".join(q_mood)
+                    sym_str = ", ".join(q_syms)
+                    db.save_daily_symptom(user_id, selected_date_cal, q_flow, mood_str, sym_str, q_energy, q_notes)
+                    if not is_period_logged and period_marked:
+                        db.add_cycle_log(user_id, selected_date_cal, "Logged via calendar")
+                    st.success(f"✅ Daily log saved for {selected_date_cal.strftime('%d %B %Y')}!")
+                    st.rerun()
+
+    # Phase Diet & Nutrition Suggestions (tailored to active phase: Fertility, Ovulation, Period, or Luteal/PMS)
+    sel_event = events.get(selected_date_cal, {})
+    sel_phase_title = sel_event.get("phase", phase_name)
+    diet_info = health_engine.get_diet_suggestions(sel_phase_title)
+    
+    st.markdown("<div style='margin-top: 14px;'></div>", unsafe_allow_html=True)
+    with st.expander(f"🥗 Phase Diet & Nutrition Suggestions &bull; {diet_info['name']}", expanded=False):
+        st.markdown(f"**Focus:** *{diet_info['tagline']}*")
+        st.caption(diet_info["biology"])
+        
+        diet_c1, diet_c2 = st.columns(2)
+        with diet_c1:
+            st.markdown("##### 🌟 Recommended Superfoods")
+            for sf_title, sf_desc in diet_info["superfoods"]:
+                st.markdown(f"**{sf_title}**")
+                st.caption(sf_desc)
+        with diet_c2:
+            st.markdown("##### 🚫 Foods to Minimize")
+            for f_bad in diet_info["foods_to_avoid"]:
+                st.markdown(f"• {f_bad}")
+            st.markdown("<div style='margin-top: 10px;'></div>", unsafe_allow_html=True)
+            st.markdown("##### 🍽️ Sample Meal Inspiration")
+            for meal_name, meal_desc in diet_info["sample_meals"].items():
+                st.markdown(f"• **{meal_name}:** {meal_desc}")
+
+    # Personalized Calendar Sync with Custom Events & Custom Names
+    st.markdown("<div style='margin-top: 14px;'></div>", unsafe_allow_html=True)
+    with st.expander("📲 Sync to Phone Calendar (Custom Event Selection & Private Names)", expanded=False):
+        st.write("Select which events to sync and customize their names for personal privacy (e.g. use **'🌸 Rest Time'** instead of *'Period'*):")
+        
+        sync_c1, sync_c2 = st.columns(2)
+        with sync_c1:
+            sync_period = st.checkbox("🩸 Bleeding / Period Dates", value=True, key="sync_chk_period")
+            custom_period_label = st.text_input(
+                "Custom Name for Bleeding Dates",
+                value="🌸 Rest Time",
+                key="sync_lbl_period",
+                help="E.g. 'Rest Time', 'Self-Care Days', 'Moon Time'"
+            )
+            
+            sync_ovulation = st.checkbox("🟣 Ovulation Peak Day", value=True, key="sync_chk_ov")
+            custom_ovulation_label = st.text_input(
+                "Custom Name for Ovulation Peak",
+                value="🟣 Ovulation Peak",
+                key="sync_lbl_ov",
+                help="E.g. 'Ovulation Day', 'Energy Peak'"
+            )
+
+        with sync_c2:
+            sync_fertile = st.checkbox("🌱 High Fertility Window", value=True, key="sync_chk_fertile")
+            custom_fertile_label = st.text_input(
+                "Custom Name for Fertile Window",
+                value="🌱 High Fertility Window",
+                key="sync_lbl_fertile",
+                help="E.g. 'Conception Window', 'Vitality Window'"
+            )
+            
+            sync_pms = st.checkbox("✨ Pre-Menstrual (PMS) Window", value=False, key="sync_chk_pms")
+            custom_pms_label = st.text_input(
+                "Custom Name for PMS Window",
+                value="✨ Cozy Care Window",
+                key="sync_lbl_pms",
+                help="E.g. 'Gentle Care Days', 'Rest & Relax'"
+            )
+
+        custom_ics_content = generate_ics(
+            cycles=cycles,
+            username=username,
+            include_period=sync_period,
+            period_label=custom_period_label,
+            include_ovulation=sync_ovulation,
+            ovulation_label=custom_ovulation_label,
+            include_fertile=sync_fertile,
+            fertile_label=custom_fertile_label,
+            include_pms=sync_pms,
+            pms_label=custom_pms_label
         )
-
-    st.caption(f"💡 Showing 3-month window from **{m_start_name}** to **{m_end_name}**. Use **◀ Previous Month** and **Next Month ▶** to glide through past history and upcoming forecasts for the next 2 years. Hover over any date for phase details, physical symptoms, mood cues, and care tips.")
-
-    # Render exactly 3 side-by-side month cards
-    cal_cols = st.columns(3)
-    for col_idx, (year, month) in enumerate(display_months):
-        with cal_cols[col_idx]:
-            st.markdown(calendar_html(year, month, events), unsafe_allow_html=True)
-
-    st.markdown("<div style='margin-top: 15px;'></div>", unsafe_allow_html=True)
-    c_exp1, c_exp2 = st.columns([3, 1])
-    with c_exp1:
-        st.markdown("#### 📲 Sync Predicted Cycles to Phone Calendar")
-        st.caption("Download an `.ics` calendar file to automatically import period start dates and ovulation windows into Apple Calendar, Google Calendar, or Outlook.")
-    with c_exp2:
-        ics_content = generate_ics(cycles, username)
+        
         st.download_button(
-            label="📅 Download Calendar (.ics)",
-            data=ics_content,
-            file_name=f"Relax_Cycle_{username}.ics",
+            label="📅 Download Customized Calendar (.ics)",
+            data=custom_ics_content,
+            file_name=f"Relax_Sync_{username}.ics",
             mime="text/calendar",
             type="primary",
             use_container_width=True
         )
+        st.caption("Compatible with Apple Calendar (iPhone/Mac), Google Calendar (Android), and Microsoft Outlook.")
 
 # =========================================================
 # VIEW 2: 💬 Chat (AI Cycle & Menstrual Wellness Assistant)
 # =========================================================
-elif st.session_state["active_nav"] == "💬 Chat":
+elif st.session_state["active_nav"] in ["💬", "💬 Chat"]:
     st.markdown("### 💬 Relax Wellness & Cycle Assistant")
     st.caption("Your personalized cycle guide for phase nutrition, natural symptom relief, thyroid/stress effects, and countdown forecasts.")
 
@@ -1258,7 +2302,7 @@ elif st.session_state["active_nav"] == "💬 Chat":
 # =========================================================
 # VIEW 3: 💡 Insights (Trends Chart, Health Protocol & Forecast)
 # =========================================================
-elif st.session_state["active_nav"] == "💡 Insights":
+elif st.session_state["active_nav"] in ["💡", "💡 Insights"]:
     st.markdown("### 💡 Cycle Insights & Health Protocols")
     st.caption("Visualizing your cycle duration trends, biological health protocol, and complete forecast schedule.")
 
@@ -1410,6 +2454,47 @@ elif st.session_state["active_nav"] == "💡 Insights":
         elif health_res["period_shift"] < 0:
             st.warning(f"🩸 **Bleeding Duration Advisory:** Your health profile indicates a tendency toward lighter or shorter bleeding (-{abs(health_res['period_shift'])} day).")
 
+    # 2b. Interactive Cycle-Synced Diet & Nutrition Guide
+    st.markdown("---")
+    st.subheader("🥗 Cycle-Synced Diet & Nutrition Guide")
+    st.caption("Personalized nourishment strategies tailored to your metabolic shifts during menstruation, fertility, ovulation, and PMS.")
+    
+    all_diet_protocols = health_engine.get_all_cycle_diet_guides()
+    phase_keys = ["menstrual", "follicular", "ovulation", "luteal"]
+    phase_labels = {
+        "menstrual": "🩸 Period (Menstrual)",
+        "follicular": "🌱 Follicular & Fertility",
+        "ovulation": "🟣 Ovulation Peak Day",
+        "luteal": "✨ Luteal Phase (PMS)"
+    }
+    
+    diet_tabs = st.tabs([phase_labels[k] for k in phase_keys])
+    for idx, p_key in enumerate(phase_keys):
+        with diet_tabs[idx]:
+            p_diet = all_diet_protocols[p_key]
+            st.markdown(f"#### {p_diet['name']}")
+            st.markdown(f"*{p_diet['tagline']}*")
+            st.info(f"🧬 **Biological Rationale:** {p_diet['biology']}")
+            
+            img_c, info_c1, info_c2 = st.columns([1.1, 1.3, 1.3])
+            with img_c:
+                img_path = f"assets/{p_key}_diet.jpg"
+                if os.path.exists(img_path):
+                    st.image(img_path, caption=f"🍽️ {p_diet['name']} Superfood Plate", use_container_width=True)
+            with info_c1:
+                st.markdown("##### 🌟 Recommended Superfoods")
+                for s_title, s_desc in p_diet["superfoods"]:
+                    st.markdown(f"**{s_title}**")
+                    st.caption(s_desc)
+            with info_c2:
+                st.markdown("##### 🚫 Foods to Minimize")
+                for avoid_item in p_diet["foods_to_avoid"]:
+                    st.markdown(f"• {avoid_item}")
+                st.markdown("<div style='margin-top: 10px;'></div>", unsafe_allow_html=True)
+                st.markdown("##### 🍽️ Daily Meal Blueprint")
+                for m_t, m_d in p_diet["sample_meals"].items():
+                    st.markdown(f"• **{m_t}:** {m_d}")
+
     # 3. Forecast Table
     st.markdown("---")
     tbl_h_col, tbl_f_col = st.columns([3, 1])
@@ -1453,7 +2538,7 @@ elif st.session_state["active_nav"] == "💡 Insights":
 # =========================================================
 # VIEW 4: 📝 Symptoms Update (Daily Logger & History)
 # =========================================================
-elif st.session_state["active_nav"] == "📝 Symptoms Update":
+elif st.session_state["active_nav"] in ["📝", "📝 Symptoms Update"]:
     st.markdown("### 📝 Daily Symptoms, Mood & Health Update")
     st.caption(f"Log your daily cues for **{username}** to track physical patterns, energy shifts, and emotions across your cycle.")
 
@@ -1461,25 +2546,49 @@ elif st.session_state["active_nav"] == "📝 Symptoms Update":
 
     with sym_form_col:
         st.markdown("#### ✍️ Log Symptoms for a Date")
-        log_date = st.date_input("Select Date", value=today, max_value=today + timedelta(days=7), key="symptom_log_date")
+        v4_d_col, v4_diet_col = st.columns([1.5, 0.35])
+        with v4_d_col:
+            log_date = st.date_input("Select Date", value=today, max_value=today + timedelta(days=7), key="symptom_log_date")
+        with v4_diet_col:
+            st.markdown("<div style='height: 28px;'></div>", unsafe_allow_html=True)
+            v4_ev = events.get(log_date, {})
+            v4_phase = v4_ev.get("phase", phase_name)
+            render_diet_notif_popover(v4_phase, "Diet", container_key="diet_notif_sym")
         
-        row1_c1, row1_c2 = st.columns(2)
-        with row1_c1:
-            flow_option = st.selectbox("Flow Intensity", ["None", "Spotting", "Light", "Medium", "Heavy"], key="sym_flow")
-        with row1_c2:
-            energy_option = st.selectbox("Energy Level", ["High ⚡", "Moderate 🌿", "Low / Fatigued 😴"], key="sym_energy")
-            
-        mood_options = st.multiselect(
-            "Mood & Emotions",
-            ["Happy 😊", "Calm 🧘", "Energetic ⚡", "Confident ✨", "Sensitive 🥺", "Irritable 😤", "Anxious 😟", "Brain Fog 🌫️", "Low Mood 🌧️"],
-            key="sym_mood"
-        )
-        symptom_options = st.multiselect(
-            "Physical Symptoms",
-            ["Cramps 💥", "Bloating 🎈", "Headache 🤕", "Tender Breasts 🌸", "Acne 💧", "Lower Back Pain 🦴", "Cravings 🍫", "Insomnia 🌙"],
-            key="sym_phys"
-        )
-        note_text = st.text_area("Personal Notes & Self-Care Reflections", placeholder="E.g., chamomile tea helped cramps, slept 8 hours...", key="sym_notes")
+        existing_v4 = user_symptoms.get(log_date, {})
+        v4_str = log_date.isoformat()
+
+        flow_choices = ["None", "Spotting", "Light", "Medium", "Heavy"]
+        def_v4_flow = existing_v4.get("flow", "None")
+        v4_flow_default = def_v4_flow if def_v4_flow in flow_choices else "None"
+
+        energy_choices = ["High ⚡", "Moderate 🌿", "Low / Fatigued 😴"]
+        def_v4_energy = existing_v4.get("energy", "Moderate 🌿")
+        v4_energy_default = def_v4_energy if def_v4_energy in energy_choices else "Moderate 🌿"
+
+        all_mood_choices = ["Happy 😊", "Calm 🧘", "Energetic ⚡", "Confident ✨", "Sensitive 🥺", "Irritable 😤", "Anxious 😟", "Brain Fog 🌫️", "Low Mood 🌧️"]
+        raw_v4_m = existing_v4.get("mood", "")
+        def_v4_moods = [m.strip() for m in raw_v4_m.split(",") if m.strip() and m.strip() in all_mood_choices]
+
+        all_symptom_choices = ["Cramps 💥", "Bloating 🎈", "Headache 🤕", "Tender Breasts 🌸", "Acne 💧", "Lower Back Pain 🦴", "Cravings 🍫", "Insomnia 🌙"]
+        raw_v4_s = existing_v4.get("symptoms", "")
+        def_v4_syms = [s.strip() for s in raw_v4_s.split(",") if s.strip() in all_symptom_choices]
+
+        st.markdown("<p style='font-size:0.88rem; font-weight:600; margin-top:8px; margin-bottom:2px; color:#334155;'>🩸 Flow Intensity</p>", unsafe_allow_html=True)
+        flow_option_sel = st.pills("Flow Intensity", flow_choices, default=v4_flow_default, selection_mode="single", label_visibility="collapsed", key=f"sym_flow_{v4_str}")
+        flow_option = flow_option_sel or "None"
+
+        st.markdown("<p style='font-size:0.88rem; font-weight:600; margin-top:8px; margin-bottom:2px; color:#334155;'>⚡ Energy Level</p>", unsafe_allow_html=True)
+        energy_option_sel = st.pills("Energy Level", energy_choices, default=v4_energy_default, selection_mode="single", label_visibility="collapsed", key=f"sym_energy_{v4_str}")
+        energy_option = energy_option_sel or "Moderate 🌿"
+
+        st.markdown("<p style='font-size:0.88rem; font-weight:600; margin-top:8px; margin-bottom:2px; color:#334155;'>🧘 Mood & Emotions (Select all that apply)</p>", unsafe_allow_html=True)
+        mood_options = st.pills("Mood & Emotions", all_mood_choices, default=def_v4_moods, selection_mode="multi", label_visibility="collapsed", key=f"sym_mood_{v4_str}") or []
+
+        st.markdown("<p style='font-size:0.88rem; font-weight:600; margin-top:8px; margin-bottom:2px; color:#334155;'>🌸 Physical Symptoms (Select all that apply)</p>", unsafe_allow_html=True)
+        symptom_options = st.pills("Physical Symptoms", all_symptom_choices, default=def_v4_syms, selection_mode="multi", label_visibility="collapsed", key=f"sym_phys_{v4_str}") or []
+
+        note_text = st.text_area("Personal Notes & Self-Care Reflections", value=existing_v4.get("notes", ""), placeholder="E.g., chamomile tea helped cramps, slept 8 hours...", key=f"sym_notes_{v4_str}")
         
         if st.button("💾 Save Daily Log", type="primary", use_container_width=True, key="btn_save_sym"):
             mood_str = ", ".join(mood_options)

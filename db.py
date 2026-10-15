@@ -93,6 +93,10 @@ def init_db():
         cursor.execute("ALTER TABLE users ADD COLUMN stress_level TEXT DEFAULT 'Normal'")
     if "pin_hash" not in existing_cols:
         cursor.execute("ALTER TABLE users ADD COLUMN pin_hash TEXT DEFAULT ''")
+    if "recovery_question" not in existing_cols:
+        cursor.execute("ALTER TABLE users ADD COLUMN recovery_question TEXT DEFAULT ''")
+    if "recovery_answer_hash" not in existing_cols:
+        cursor.execute("ALTER TABLE users ADD COLUMN recovery_answer_hash TEXT DEFAULT ''")
 
     conn.commit()
     conn.close()
@@ -197,6 +201,10 @@ def save_daily_symptom(user_id: int, log_date: date, flow: str, mood: str, sympt
     conn.commit()
     conn.close()
 
+# Alias for backward and cross-module compatibility
+add_daily_symptoms = save_daily_symptom
+
+
 def get_daily_symptoms(user_id: int) -> Dict[date, Dict]:
     conn = get_connection()
     cursor = conn.cursor()
@@ -280,6 +288,69 @@ def set_user_pin(user_id: int, new_pin: str) -> bool:
     conn.commit()
     conn.close()
     return True
+
+def set_user_security(user_id: int, new_pin: str, recovery_question: str = "", recovery_answer: str = "") -> bool:
+    """Sets or updates PIN and recovery question/answer for a user."""
+    conn = get_connection()
+    cursor = conn.cursor()
+    pin_h = hash_pin(new_pin) if new_pin else ""
+    ans_h = hash_pin(recovery_answer.strip().lower()) if recovery_answer.strip() else ""
+    
+    if recovery_question.strip():
+        cursor.execute("""
+        UPDATE users 
+        SET pin_hash = ?, recovery_question = ?, recovery_answer_hash = ?
+        WHERE id = ?
+        """, (pin_h, recovery_question.strip(), ans_h, user_id))
+    else:
+        cursor.execute("UPDATE users SET pin_hash = ? WHERE id = ?", (pin_h, user_id))
+    conn.commit()
+    conn.close()
+    return True
+
+def verify_recovery_answer(user_id: int, answer: str) -> bool:
+    """Checks whether the provided recovery answer matches."""
+    conn = get_connection()
+    cursor = conn.cursor()
+    cursor.execute("SELECT recovery_answer_hash FROM users WHERE id = ?", (user_id,))
+    row = cursor.fetchone()
+    conn.close()
+    if not row:
+        return False
+    stored = row["recovery_answer_hash"]
+    if not stored:
+        return False
+    return hash_pin(answer.strip().lower()) == stored
+
+def reset_user_pin_with_recovery(user_id: int, answer: str, new_pin: str) -> Tuple[bool, str]:
+    """Resets user PIN using the security answer."""
+    if not verify_recovery_answer(user_id, answer):
+        return False, "Incorrect recovery answer. Please try again."
+    set_user_pin(user_id, new_pin)
+    return True, "PIN reset successfully! You can now use your new PIN."
+
+def remove_user_pin(user_id: int) -> bool:
+    """Removes PIN protection and recovery credentials for the user."""
+    conn = get_connection()
+    cursor = conn.cursor()
+    cursor.execute("UPDATE users SET pin_hash = '', recovery_question = '', recovery_answer_hash = '' WHERE id = ?", (user_id,))
+    conn.commit()
+    conn.close()
+    return True
+
+def get_user_security_info(user_id: int) -> Dict:
+    """Retrieves security status for a user."""
+    conn = get_connection()
+    cursor = conn.cursor()
+    cursor.execute("SELECT pin_hash, recovery_question FROM users WHERE id = ?", (user_id,))
+    row = cursor.fetchone()
+    conn.close()
+    if not row:
+        return {"has_pin": False, "recovery_question": ""}
+    return {
+        "has_pin": bool(row["pin_hash"]),
+        "recovery_question": row["recovery_question"] or ""
+    }
 
 def export_user_data(user_id: int) -> Dict:
     """Exports all user data (profile, cycles, symptoms) to a structured dictionary for backup/JSON download."""
