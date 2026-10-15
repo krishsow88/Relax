@@ -12,6 +12,10 @@ import plotly.graph_objects as go
 import db
 import health_engine
 import chat_assistant
+import importlib
+importlib.reload(db)
+importlib.reload(health_engine)
+importlib.reload(chat_assistant)
 
 # ---------------------------------------------------------
 # Page Configuration & Relax Branding
@@ -1988,39 +1992,35 @@ if not st.session_state.get("authenticated_user"):
 
         with tab_signup:
             st.caption("Create your own private cycle profile:")
-            reg_name = st.text_input("Your Name / Nickname", placeholder="e.g. Sarah, Emily, Alex", key="reg_name_input")
-            c_r1, c_r2 = st.columns(2)
-            with c_r1:
-                reg_cycle = st.number_input("Typical Cycle Length (days)", min_value=21, max_value=45, value=28, key="reg_cycle_len")
-            with c_r2:
-                reg_period = st.number_input("Period Duration (days)", min_value=1, max_value=10, value=5, key="reg_period_len")
-            
-            reg_pin = st.text_input("Set 4-Digit Security PIN (optional)", type="password", placeholder="Leave blank if no PIN desired", key="reg_pin_input")
+            reg_name = st.text_input("Username / Name *", placeholder="Enter your name (mandatory)", key="reg_name_input")
+            reg_pin = st.text_input("4-Digit Security PIN *", type="password", placeholder="Set 4-digit PIN (mandatory, e.g. 0192)", key="reg_pin_input")
+            reg_email = st.text_input("Email ID (Optional)", placeholder="yourname@gmail.com", key="reg_email_input", help="Optional: Required in case you want to sync your cycle stages with Google, Apple, or Outlook Calendar.")
+            st.caption("*(Email is optional — required in case you want to sync with your personal calendar)*")
             
             if st.button("🌸 Create Account & Start Journal", type="primary", use_container_width=True, key="btn_reg_create"):
-                if not reg_name.strip():
-                    st.error("Please enter your name.")
-                elif not is_host and reg_name.strip().lower() == "krishna":
-                    st.error("Name 'Krishna' is reserved for the host. Please choose your own name.")
+                clean_name = reg_name.strip()
+                clean_pin = reg_pin.strip()
+                clean_email = reg_email.strip()
+                if not clean_name:
+                    st.error("Username is mandatory. Please enter your name.")
+                elif not clean_pin:
+                    st.error("PIN is mandatory. Please set a 4-digit security PIN.")
                 else:
-                    success, msg, new_u = db.register_user(reg_name.strip(), reg_pin.strip(), reg_cycle, reg_period)
+                    success, msg, new_u = db.register_user(clean_name, clean_pin, default_cycle=28, default_period=5, email=clean_email)
                     if success and new_u:
                         st.session_state["authenticated_user"] = new_u["username"]
                         st.session_state["selected_username"] = new_u["username"]
                         st.session_state[f"auth_unlocked_{new_u['id']}"] = True
                         st.session_state["logged_out_explicitly"] = False
+                        if clean_email:
+                            st.session_state["cal_sync_email_val"] = clean_email
                         st.success(f"Welcome, {new_u['username']}!")
                         st.rerun()
                     else:
                         st.error(msg)
 
         with tab_demo:
-            st.markdown("""
-            <div style="background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 10px; padding: 12px; margin-bottom: 12px; font-size: 0.83rem; color: #475569;">
-                <b>👋 Preview for Interviewers & Guests:</b><br/>
-                Explore all interactive features of <b>Relax</b> (3-month calendar, AI cycle forecasting, symptom logger, and 4-phase nutrition guide) without needing to create an account.
-            </div>
-            """, unsafe_allow_html=True)
+            st.markdown("<div style='height: 4px;'></div>", unsafe_allow_html=True)
             if st.button("👁️ Explore as Demo Guest", type="secondary", use_container_width=True, key="btn_guest_demo_launch"):
                 demo_u = db.get_or_create_user("Demo Guest", default_cycle=28, default_period=5)
                 demo_logs = db.get_user_cycle_logs(demo_u["id"])
@@ -2113,39 +2113,46 @@ user_logs = db.get_user_cycle_logs(user_id)
 # Sidebar: Typical Cycle Baseline Defaults
 # ---------------------------------------------------------
 st.sidebar.markdown("---")
-st.sidebar.markdown("### ⚙️ Typical Cycle Baseline")
-st.sidebar.caption("Set baseline length & duration. *(Note: You can log new period dates and daily symptoms directly using the Calendar!)*")
 
-# Default latest start date
+# Default baseline values from history or user account
 if user_logs:
     default_start_date = user_logs[-1]
 else:
     default_start_date = date(date.today().year, 9, 21)
 
-start_date = st.sidebar.date_input(
-    "Latest period start date",
-    value=default_start_date
-)
+start_date = default_start_date
+cycle_length = int(current_user["typical_cycle_length"])
+period_length = int(current_user["typical_period_length"])
 
-cycle_length = st.sidebar.number_input(
-    "Typical cycle length (days)",
-    min_value=21, max_value=45,
-    value=int(current_user["typical_cycle_length"]),
-    step=1
-)
+with st.sidebar.expander("⚙️ Typical Cycle Baseline", expanded=False):
+    st.caption("Set baseline length & duration. *(Note: You can log new period dates and daily symptoms directly using the Calendar!)*")
+    start_date = st.date_input(
+        "Latest period start date",
+        value=default_start_date,
+        key="sb_input_start_date"
+    )
 
-period_length = st.sidebar.number_input(
-    "Typical bleeding duration (days)",
-    min_value=1, max_value=10,
-    value=int(current_user["typical_period_length"]),
-    step=1
-)
+    cycle_length = st.number_input(
+        "Typical cycle length (days)",
+        min_value=21, max_value=45,
+        value=int(current_user["typical_cycle_length"]),
+        step=1,
+        key="sb_input_cycle_len"
+    )
 
-if st.sidebar.button("💾 Save as My Defaults"):
-    db.update_user_preferences(user_id, cycle_length, period_length)
-    db.add_cycle_log(user_id, start_date, "Logged via settings")
-    st.sidebar.success("Saved to database!")
-    st.rerun()
+    period_length = st.number_input(
+        "Typical bleeding duration (days)",
+        min_value=1, max_value=10,
+        value=int(current_user["typical_period_length"]),
+        step=1,
+        key="sb_input_period_len"
+    )
+
+    if st.button("💾 Save Baseline Defaults", key="sb_btn_save_defaults", use_container_width=True):
+        db.update_user_preferences(user_id, cycle_length, period_length)
+        db.add_cycle_log(user_id, start_date, "Logged via settings")
+        st.success("Saved to database!")
+        st.rerun()
 
 # ---------------------------------------------------------
 # Sidebar: Period History Management
@@ -2180,10 +2187,6 @@ if len(user_logs) >= 2:
 # ---------------------------------------------------------
 # Sidebar: Medications & Health Factors
 # ---------------------------------------------------------
-st.sidebar.markdown("---")
-st.sidebar.markdown("### 💊 Medications")
-st.sidebar.caption("Track medications, thyroid treatment, hormonal supplements & factors altering period timing.")
-
 user_thyroid = current_user.get("thyroid_status") or "None / Normal Thyroid"
 if user_thyroid == "None":
     user_thyroid = "None / Normal Thyroid"
@@ -2195,52 +2198,62 @@ user_stress = current_user.get("stress_level") or "Low / Managed"
 if user_stress == "Normal":
     user_stress = "Low / Managed"
 
-thyroid_options = [
-    "None / Normal Thyroid",
-    "Hypothyroidism (Underactive)",
-    "Hyperthyroidism (Overactive)",
-    "Hashimoto's Thyroiditis"
-]
-curr_thyroid_idx = thyroid_options.index(user_thyroid) if user_thyroid in thyroid_options else 0
+selected_thyroid = user_thyroid
+selected_conditions = user_conditions
+selected_stress = user_stress
 
-selected_thyroid = st.sidebar.selectbox(
-    "Thyroid Condition / Medication",
-    options=thyroid_options,
-    index=curr_thyroid_idx,
-    help="Underactive or overactive thyroid significantly alters TRH, prolactin, and ovulation timing."
-)
+with st.sidebar.expander("💊 Medications Profile", expanded=False):
+    st.caption("Track medications, thyroid treatment, hormonal supplements & factors altering period timing.")
 
-condition_choices = [
-    "PCOS / PCOD",
-    "Endometriosis",
-    "Uterine Fibroids",
-    "Perimenopause",
-    "Hormonal Birth Control"
-]
-valid_user_conds = [c for c in user_conditions if c in condition_choices]
+    thyroid_options = [
+        "None / Normal Thyroid",
+        "Hypothyroidism (Underactive)",
+        "Hyperthyroidism (Overactive)",
+        "Hashimoto's Thyroiditis"
+    ]
+    curr_thyroid_idx = thyroid_options.index(user_thyroid) if user_thyroid in thyroid_options else 0
 
-selected_conditions = st.sidebar.multiselect(
-    "Other Health Issues / Hormonal Rx",
-    options=condition_choices,
-    default=valid_user_conds,
-    help="Select any diagnosed or suspected conditions affecting your cycle."
-)
+    selected_thyroid = st.selectbox(
+        "Thyroid Condition / Medication",
+        options=thyroid_options,
+        index=curr_thyroid_idx,
+        help="Underactive or overactive thyroid significantly alters TRH, prolactin, and ovulation timing.",
+        key="sb_sel_thyroid"
+    )
 
-stress_options = ["Low / Managed", "Moderate", "High / Chronic Stress / Burnout"]
-curr_stress_idx = stress_options.index(user_stress) if user_stress in stress_options else 0
+    condition_choices = [
+        "PCOS / PCOD",
+        "Endometriosis",
+        "Uterine Fibroids",
+        "Perimenopause",
+        "Hormonal Birth Control"
+    ]
+    valid_user_conds = [c for c in user_conditions if c in condition_choices]
 
-selected_stress = st.sidebar.selectbox(
-    "Stress Level",
-    options=stress_options,
-    index=curr_stress_idx,
-    help="Cortisol suppresses GnRH pulsatility and can postpone ovulation."
-)
+    selected_conditions = st.multiselect(
+        "Other Health Issues / Hormonal Rx",
+        options=condition_choices,
+        default=valid_user_conds,
+        help="Select any diagnosed or suspected conditions affecting your cycle.",
+        key="sb_sel_conds"
+    )
 
-if st.sidebar.button("💾 Save Medications Profile"):
-    conds_str = ", ".join(selected_conditions)
-    db.update_user_health_profile(user_id, selected_thyroid, conds_str, selected_stress)
-    st.sidebar.success("Medications & health factors updated! Period fluctuations recalculated.")
-    st.rerun()
+    stress_options = ["Low / Managed", "Moderate", "High / Chronic Stress / Burnout"]
+    curr_stress_idx = stress_options.index(user_stress) if user_stress in stress_options else 0
+
+    selected_stress = st.selectbox(
+        "Stress Level",
+        options=stress_options,
+        index=curr_stress_idx,
+        help="Cortisol suppresses GnRH pulsatility and can postpone ovulation.",
+        key="sb_sel_stress"
+    )
+
+    if st.button("💾 Save Medications Profile", key="sb_btn_save_meds", use_container_width=True):
+        conds_str = ", ".join(selected_conditions)
+        db.update_user_health_profile(user_id, selected_thyroid, conds_str, selected_stress)
+        st.success("Medications & health factors updated! Period fluctuations recalculated.")
+        st.rerun()
 
 # ---------------------------------------------------------
 # Health & Period Fluctuation Engine Calculation
@@ -2318,32 +2331,88 @@ events = build_calendar_events(
 )
 
 def render_diet_notif_popover(phase_val: str, tooltip_hint: str = "Diet", container_key: str = "diet_notif"):
-    """Renders a sleek, cycle-synced diet notification icon popover."""
+    """Renders a sleek, cycle-synced diet notification icon popover with scrollable following days."""
+    cur_today = date.today()
     diet_info = health_engine.get_diet_suggestions(phase_val)
     with st.container(key=container_key):
-        with st.popover("🥗", help="Diet"):
-            st.markdown(f"<div style='font-weight:700; font-size:1.05rem; color:#15803d; margin-bottom:2px;'>🥗 Diet</div>", unsafe_allow_html=True)
-            st.markdown(f"<div style='font-size:0.83rem; font-weight:600; color:#334155; margin-bottom:2px;'>{diet_info['name']}</div>", unsafe_allow_html=True)
-            st.markdown(f"<div style='font-size:0.78rem; color:#64748b; font-style:italic; margin-bottom:6px;'>{diet_info['tagline']}</div>", unsafe_allow_html=True)
+        with st.popover("🥗", help=tooltip_hint):
+            st.markdown(f"<div style='font-weight:700; font-size:1.05rem; color:#15803d; margin-bottom:2px;'>🥗 Cycle Nutrition Guide</div>", unsafe_allow_html=True)
             
-            # Food image preview for this phase
-            p_img_key = diet_info.get("key", "luteal")
-            img_file = f"assets/{p_img_key}_diet.jpg"
-            if os.path.exists(img_file):
-                st.image(img_file, use_container_width=True)
+            tab_today, tab_scroll, tab_all = st.tabs(["🌟 Today", "📅 Following Days", "📚 All Phases"])
+            
+            with tab_today:
+                st.markdown(f"<div style='font-size:0.83rem; font-weight:600; color:#334155; margin-bottom:2px;'>{cur_today.strftime('%A, %b %d')} • {diet_info['name']}</div>", unsafe_allow_html=True)
+                st.markdown(f"<div style='font-size:0.78rem; color:#64748b; font-style:italic; margin-bottom:6px;'>{diet_info['tagline']}</div>", unsafe_allow_html=True)
                 
-            st.markdown(f"<div style='background:#f0fdf4; border-left:3px solid #22c55e; padding:5px 8px; border-radius:6px; font-size:0.78rem; color:#166534; margin-bottom:8px;'>🧬 <b>Biology:</b> {diet_info['biology']}</div>", unsafe_allow_html=True)
-            
-            st.markdown("<div style='font-weight:600; font-size:0.82rem; color:#1e293b; margin-bottom:2px;'>🌟 Recommended Superfoods:</div>", unsafe_allow_html=True)
-            for title, desc in diet_info["superfoods"][:3]:
-                st.markdown(f"<div style='font-size:0.78rem; margin-bottom:2px;'>• <b>{title}:</b> <span style='color:#475569;'>{desc}</span></div>", unsafe_allow_html=True)
+                # Food image preview for this phase
+                p_img_key = diet_info.get("key", "luteal")
+                img_file = f"assets/{p_img_key}_diet.jpg"
+                if os.path.exists(img_file):
+                    st.image(img_file, use_container_width=True)
+                    
+                st.markdown(f"<div style='background:#f0fdf4; border-left:3px solid #22c55e; padding:5px 8px; border-radius:6px; font-size:0.78rem; color:#166534; margin-bottom:8px;'>🧬 <b>Biology:</b> {diet_info['biology']}</div>", unsafe_allow_html=True)
                 
-            st.markdown("<div style='margin-top:6px;'></div>", unsafe_allow_html=True)
-            st.markdown("<div style='font-weight:600; font-size:0.82rem; color:#991b1b; margin-bottom:2px;'>🚫 Foods to Minimize:</div>", unsafe_allow_html=True)
-            for avoid_item in diet_info["foods_to_avoid"][:2]:
-                st.markdown(f"<div style='font-size:0.78rem; color:#64748b; margin-bottom:2px;'>• {avoid_item}</div>", unsafe_allow_html=True)
-            
-            st.markdown("<div style='margin-top:6px;'></div>", unsafe_allow_html=True)
+                st.markdown("<div style='font-weight:600; font-size:0.82rem; color:#1e293b; margin-bottom:2px;'>🌟 Recommended Superfoods:</div>", unsafe_allow_html=True)
+                for title, desc in diet_info["superfoods"][:3]:
+                    st.markdown(f"<div style='font-size:0.78rem; margin-bottom:2px;'>• <b>{title}:</b> <span style='color:#475569;'>{desc}</span></div>", unsafe_allow_html=True)
+                    
+                st.markdown("<div style='margin-top:6px;'></div>", unsafe_allow_html=True)
+                st.markdown("<div style='font-weight:600; font-size:0.82rem; color:#991b1b; margin-bottom:2px;'>🚫 Foods to Minimize:</div>", unsafe_allow_html=True)
+                for avoid_item in diet_info["foods_to_avoid"][:2]:
+                    st.markdown(f"<div style='font-size:0.78rem; color:#64748b; margin-bottom:2px;'>• {avoid_item}</div>", unsafe_allow_html=True)
+                
+                if "sample_meals" in diet_info and diet_info["sample_meals"]:
+                    st.markdown("<div style='margin-top:6px;'></div>", unsafe_allow_html=True)
+                    st.markdown("<div style='font-weight:600; font-size:0.82rem; color:#1e293b; margin-bottom:2px;'>🍽️ Today's Sample Meal Idea:</div>", unsafe_allow_html=True)
+                    first_meal_k, first_meal_v = list(diet_info["sample_meals"].items())[0]
+                    st.markdown(f"<div style='font-size:0.78rem; color:#475569;'><b>{first_meal_k}:</b> {first_meal_v}</div>", unsafe_allow_html=True)
+
+            with tab_scroll:
+                st.markdown("<div style='font-size:0.82rem; color:#64748b; margin-bottom:8px;'>Scroll down to view upcoming days and recommended nutrition tailored to each cycle phase:</div>", unsafe_allow_html=True)
+                with st.container(height=380):
+                    for day_offset in range(1, 8):
+                        future_d = cur_today + timedelta(days=day_offset)
+                        f_ev = events.get(future_d, {}) if "events" in globals() else {}
+                        f_phase = f_ev.get("phase", phase_val)
+                        f_diet = health_engine.get_diet_suggestions(f_phase)
+                        
+                        day_label = "Tomorrow" if day_offset == 1 else f"+{day_offset} Days"
+                        date_str = future_d.strftime("%a, %b %d")
+                        
+                        p_lower = f_phase.lower()
+                        if "menstrual" in p_lower or "bleed" in p_lower or "period" in p_lower:
+                            badge_bg, badge_border, badge_text = "#fee2e2", "#ef4444", "#991b1b"
+                        elif "ovulation" in p_lower:
+                            badge_bg, badge_border, badge_text = "#f3e8ff", "#a855f7", "#6b21a8"
+                        elif "fertile" in p_lower or "follicular" in p_lower:
+                            badge_bg, badge_border, badge_text = "#f0fdf4", "#22c55e", "#166534"
+                        else:
+                            badge_bg, badge_border, badge_text = "#fef9c3", "#eab308", "#854d0e"
+                            
+                        st.markdown(
+                            f"""<div style='background:#ffffff; border:1px solid #e2e8f0; border-radius:8px; padding:8px 10px; margin-bottom:10px; box-shadow: 0 1px 3px rgba(0,0,0,0.04);'>
+                                <div style='display:flex; justify-content:space-between; align-items:center; margin-bottom:4px;'>
+                                    <span style='font-weight:700; font-size:0.85rem; color:#0f172a;'>📅 {date_str} <span style='font-size:0.75rem; color:#64748b; font-weight:500;'>({day_label})</span></span>
+                                    <span style='background:{badge_bg}; border:1px solid {badge_border}; color:{badge_text}; padding:2px 8px; border-radius:12px; font-size:0.72rem; font-weight:600;'>{f_diet['name']}</span>
+                                </div>
+                                <div style='font-size:0.76rem; color:#475569; font-style:italic; margin-bottom:4px;'>{f_diet['tagline']}</div>
+                                <div style='font-size:0.75rem; color:#166534; background:#f0fdf4; border-radius:4px; padding:3px 6px; margin-bottom:4px;'><b>🧬 Biology:</b> {f_diet['biology']}</div>
+                                <div style='font-size:0.75rem; color:#1e293b;'><b>🌟 Top Foods:</b> {', '.join([sf[0].split(' ', 1)[-1] if ' ' in sf[0] else sf[0] for sf in f_diet['superfoods'][:2]])}</div>
+                            </div>""",
+                            unsafe_allow_html=True
+                        )
+                        
+            with tab_all:
+                st.markdown("<div style='font-size:0.82rem; color:#64748b; margin-bottom:6px;'>All 4 Biological Cycle Phases:</div>", unsafe_allow_html=True)
+                with st.container(height=360):
+                    all_protocols = health_engine.get_all_cycle_diet_guides()
+                    for p_key, p_proto in all_protocols.items():
+                        st.markdown(f"<div style='font-weight:700; font-size:0.85rem; color:#0f172a; margin-top:6px;'>{p_proto['name']}</div>", unsafe_allow_html=True)
+                        st.markdown(f"<div style='font-size:0.76rem; color:#64748b; font-style:italic; margin-bottom:4px;'>{p_proto['tagline']}</div>", unsafe_allow_html=True)
+                        for sf_name, sf_desc in p_proto['superfoods'][:2]:
+                            st.markdown(f"<div style='font-size:0.75rem; color:#334155;'>• <b>{sf_name}:</b> {sf_desc}</div>", unsafe_allow_html=True)
+                        st.markdown("<hr style='margin:6px 0; border:none; border-top:1px dashed #cbd5e1;'/>", unsafe_allow_html=True)
+
             st.caption("✨ Full 4-phase nutrition guide available in 💡 Insights tab.")
 
 def render_notification_popover(phase_val: str, days_to_next: int, next_period_dt: date):

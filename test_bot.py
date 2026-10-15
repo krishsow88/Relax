@@ -323,6 +323,84 @@ except Exception as e:
     record("15. Consistent Background & High-Contrast Text Styling", False, str(e))
 
 # -------------------------------------------------------------
+# Test 16: Preview for Interviewers Removed
+# -------------------------------------------------------------
+try:
+    has_preview = "Preview for Interviewers & Guests" in app_source
+    t16_pass = not has_preview
+    record(
+        "16. Removed 'Preview for Interviewers' Banner",
+        t16_pass,
+        f"Banner removed from auth view: {t16_pass}"
+    )
+except Exception as e:
+    record("16. Removed 'Preview for Interviewers' Banner", False, str(e))
+
+# -------------------------------------------------------------
+# Test 17: Account Creation (No Period/Cycle Inputs, Mandatory PIN, Optional Email)
+# -------------------------------------------------------------
+try:
+    no_period_len_input = "su_period_len" not in app_source and "Typical Period Duration (days)" not in app_source
+    no_cycle_len_input = "su_cycle_len" not in app_source and "Typical Cycle Length (days)" not in app_source
+    has_mandatory_pin = "4-Digit Security PIN *" in app_source or "Security PIN *" in app_source
+    has_optional_email = "Email ID (Optional)" in app_source and "sync with your personal calendar" in app_source
+    t17_pass = no_period_len_input and no_cycle_len_input and has_mandatory_pin and has_optional_email
+    record(
+        "17. Simplified Account Creation Fields",
+        t17_pass,
+        f"No period/cycle inputs: {no_period_len_input and no_cycle_len_input}, Mandatory PIN: {has_mandatory_pin}, Optional Email: {has_optional_email}"
+    )
+except Exception as e:
+    record("17. Simplified Account Creation Fields", False, str(e))
+
+# -------------------------------------------------------------
+# Test 18: Sidebar Expanders (Baseline & Medications Closable/Openable)
+# -------------------------------------------------------------
+try:
+    has_baseline_expander = "st.sidebar.expander(\"⚙️ Typical Cycle Baseline\", expanded=False)" in app_source
+    has_meds_expander = "st.sidebar.expander(\"💊 Medications Profile\", expanded=False)" in app_source
+    t18_pass = has_baseline_expander and has_meds_expander
+    record(
+        "18. Sidebar Baseline & Medications are Closable/Openable",
+        t18_pass,
+        f"Baseline expander: {has_baseline_expander}, Meds expander: {has_meds_expander}"
+    )
+except Exception as e:
+    record("18. Sidebar Baseline & Medications are Closable/Openable", False, str(e))
+
+# -------------------------------------------------------------
+# Test 19: Diet Window Scrollable Following Days
+# -------------------------------------------------------------
+try:
+    has_following_days_tab = "Following Days" in app_source
+    has_scroll_container = "with st.container(height=" in app_source and "day_offset in range(1, 8)" in app_source
+    t19_pass = has_following_days_tab and has_scroll_container
+    record(
+        "19. Diet Window Scrollable Following Days",
+        t19_pass,
+        f"Following days tab: {has_following_days_tab}, Scrollable container for +7 days: {has_scroll_container}"
+    )
+except Exception as e:
+    record("19. Diet Window Scrollable Following Days", False, str(e))
+
+# -------------------------------------------------------------
+# Test 20: PIN 0192 & User Login Verification in Database
+# -------------------------------------------------------------
+try:
+    import db
+    db.init_db()
+    # Verify PIN 0192 for Krishna
+    v_ok, v_msg, user_info = db.verify_user_login("Krishna", "0192")
+    t20_pass = v_ok and user_info.get("username") == "Krishna"
+    record(
+        "20. User 'Krishna' Login with PIN '0192'",
+        t20_pass,
+        f"Login success: {v_ok}, Message: '{v_msg}', User ID: {user_info.get('id') if user_info else None}"
+    )
+except Exception as e:
+    record("20. User 'Krishna' Login with PIN '0192'", False, str(e))
+
+# -------------------------------------------------------------
 # Final Summary
 # -------------------------------------------------------------
 total_tests = len(results)

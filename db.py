@@ -107,6 +107,8 @@ def init_db():
         cursor.execute("ALTER TABLE users ADD COLUMN language TEXT DEFAULT 'English'")
     if "reminders_json" not in existing_cols:
         cursor.execute("ALTER TABLE users ADD COLUMN reminders_json TEXT DEFAULT '{}'")
+    if "email" not in existing_cols:
+        cursor.execute("ALTER TABLE users ADD COLUMN email TEXT DEFAULT ''")
 
     conn.commit()
     conn.close()
@@ -240,23 +242,37 @@ def delete_daily_symptom(user_id: int, log_date: date) -> bool:
     conn.close()
     return deleted
 
-def register_user(username: str, pin: str = "", default_cycle: int = 28, default_period: int = 5) -> Tuple[bool, str, Optional[Dict]]:
-    """Registers a new user in the database with optional secure PIN."""
+def register_user(username: str, pin: str = "", default_cycle: int = 28, default_period: int = 5, email: str = "") -> Tuple[bool, str, Optional[Dict]]:
+    """Registers a new user in the database with mandatory username & PIN, and optional email."""
     clean_username = username.strip()
+    clean_pin = pin.strip()
     if not clean_username:
-        return False, "Username cannot be empty.", None
+        return False, "Username is mandatory.", None
+    if not clean_pin:
+        return False, "Security PIN is mandatory. Please enter a 4-digit PIN.", None
+        
     conn = get_connection()
     cursor = conn.cursor()
-    cursor.execute("SELECT id FROM users WHERE LOWER(username) = LOWER(?)", (clean_username,))
-    if cursor.fetchone():
-        conn.close()
-        return False, f"Username '{clean_username}' already exists. Please choose another name or login.", None
+    cursor.execute("SELECT id, pin_hash FROM users WHERE LOWER(username) = LOWER(?)", (clean_username,))
+    existing = cursor.fetchone()
+    if existing:
+        if not existing["pin_hash"]:
+            pin_h = hash_pin(clean_pin)
+            cursor.execute("UPDATE users SET pin_hash = ?, email = ? WHERE id = ?", (pin_h, email.strip(), existing["id"]))
+            conn.commit()
+            cursor.execute("SELECT * FROM users WHERE id = ?", (existing["id"],))
+            user = dict(cursor.fetchone())
+            conn.close()
+            return True, f"Welcome back, {user['username']}! Your PIN has been set successfully.", user
+        else:
+            conn.close()
+            return False, f"Username '{clean_username}' already exists. Please go to the 'Sign In' tab to log in with your PIN.", None
     
-    pin_h = hash_pin(pin) if pin else ""
+    pin_h = hash_pin(clean_pin)
     cursor.execute("""
-    INSERT INTO users (username, typical_cycle_length, typical_period_length, thyroid_status, health_conditions, stress_level, pin_hash)
-    VALUES (?, ?, ?, 'None / Normal Thyroid', '', 'Low / Managed', ?)
-    """, (clean_username, default_cycle, default_period, pin_h))
+    INSERT INTO users (username, typical_cycle_length, typical_period_length, thyroid_status, health_conditions, stress_level, pin_hash, email)
+    VALUES (?, ?, ?, 'None / Normal Thyroid', '', 'Low / Managed', ?, ?)
+    """, (clean_username, default_cycle, default_period, pin_h, email.strip()))
     conn.commit()
     user_id = cursor.lastrowid
     user = {
@@ -267,7 +283,8 @@ def register_user(username: str, pin: str = "", default_cycle: int = 28, default
         "thyroid_status": "None / Normal Thyroid",
         "health_conditions": "",
         "stress_level": "Low / Managed",
-        "pin_hash": pin_h
+        "pin_hash": pin_h,
+        "email": email.strip()
     }
     conn.close()
     return True, f"Account '{clean_username}' created successfully in database!", user
@@ -288,6 +305,10 @@ def verify_user_login(username: str, pin: str = "") -> Tuple[bool, str, Optional
     if stored_pin_hash:
         if hash_pin(pin) != stored_pin_hash:
             return False, "Incorrect PIN. Please enter your correct PIN to unlock your profile.", None
+    else:
+        if pin.strip():
+            set_user_pin(user["id"], pin.strip())
+            user["pin_hash"] = hash_pin(pin.strip())
     return True, f"Welcome back, {user['username']}!", user
 
 def set_user_pin(user_id: int, new_pin: str) -> bool:
