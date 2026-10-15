@@ -4,6 +4,8 @@ from datetime import date, timedelta, datetime
 from typing import Optional, List, Dict, Any, Tuple
 import html
 import json
+import io
+import urllib.parse
 import pandas as pd
 import streamlit as st
 import plotly.graph_objects as go
@@ -32,39 +34,64 @@ THEMES = {
         "name": "Blush Rose 🌸",
         "bg_gradient": "linear-gradient(180deg, #fff5f7 0%, #ffffff 100%)",
         "card_bg": "#ffffff",
-        "accent": "#e11d48"
+        "card_border": "#e2e8f0",
+        "text_primary": "#1e293b",
+        "text_secondary": "#475569",
+        "accent": "#e11d48",
+        "is_dark": False
     },
     "Calm Mint": {
         "name": "Calm Mint 🌿",
         "bg_gradient": "linear-gradient(180deg, #f0fdf4 0%, #ffffff 100%)",
         "card_bg": "#ffffff",
-        "accent": "#16a34a"
+        "card_border": "#e2e8f0",
+        "text_primary": "#1e293b",
+        "text_secondary": "#475569",
+        "accent": "#16a34a",
+        "is_dark": False
     },
     "Lavender Mist": {
         "name": "Lavender Mist 💜",
         "bg_gradient": "linear-gradient(180deg, #faf5ff 0%, #ffffff 100%)",
         "card_bg": "#ffffff",
-        "accent": "#9333ea"
+        "card_border": "#e2e8f0",
+        "text_primary": "#1e293b",
+        "text_secondary": "#475569",
+        "accent": "#9333ea",
+        "is_dark": False
     },
     "Warm Peach": {
         "name": "Warm Peach ☀️",
         "bg_gradient": "linear-gradient(180deg, #fff7ed 0%, #ffffff 100%)",
         "card_bg": "#ffffff",
-        "accent": "#ea580c"
+        "card_border": "#e2e8f0",
+        "text_primary": "#1e293b",
+        "text_secondary": "#475569",
+        "accent": "#ea580c",
+        "is_dark": False
     },
     "Ocean Breeze": {
         "name": "Ocean Breeze 🌊",
         "bg_gradient": "linear-gradient(180deg, #f0f9ff 0%, #ffffff 100%)",
         "card_bg": "#ffffff",
-        "accent": "#0284c7"
+        "card_border": "#e2e8f0",
+        "text_primary": "#1e293b",
+        "text_secondary": "#475569",
+        "accent": "#0284c7",
+        "is_dark": False
     },
     "Midnight Velvet": {
         "name": "Midnight Velvet 🌙",
         "bg_gradient": "linear-gradient(180deg, #0f172a 0%, #1e293b 100%)",
         "card_bg": "#1e293b",
-        "accent": "#2dd4bf"
+        "card_border": "#334155",
+        "text_primary": "#f8fafc",
+        "text_secondary": "#cbd5e1",
+        "accent": "#2dd4bf",
+        "is_dark": True
     }
 }
+
 
 TRANSLATIONS = {
     "English": {
@@ -158,14 +185,30 @@ TRANSLATIONS = {
 # ---------------------------------------------------------
 st.markdown("""
 <style>
-/* Completely hide default Streamlit developer header toolbar (Share, Star, Edit in VS Code, GitHub) */
+/* Completely hide default Streamlit developer header toolbar, cloud viewer badges, fork & deploy buttons */
 header[data-testid="stHeader"],
+header,
+[data-testid="stHeader"],
 [data-testid="stToolbar"],
 .stAppToolbar,
 #MainMenu,
 footer,
 [data-testid="stDecoration"],
-[data-testid="stStatusWidget"] {
+[data-testid="stStatusWidget"],
+.stAppDeployButton,
+[data-testid="stAppDeployButton"],
+[data-testid="manage-app-button"],
+[class*="viewerBadge"],
+[class*="manage-app"],
+.viewerBadge_container__1QSob,
+[data-testid="stActionButtonIcon"],
+[data-testid="stToolbarActionButton"],
+[data-testid="stToolbarActions"],
+[data-testid="stElementToolbar"],
+div[class*="stAppDeployButton"],
+div[class*="viewerBadge"],
+a[href*="github.com"][target="_blank"],
+button[title*="Fork"] {
     display: none !important;
     visibility: hidden !important;
     height: 0px !important;
@@ -1487,6 +1530,7 @@ def calendar_html(year: int, month: int, events: dict, selected_date: Optional[d
 def generate_ics(
     cycles: pd.DataFrame,
     username: str,
+    user_email: str = "",
     include_period: bool = True,
     period_label: str = "🌸 Rest Time",
     include_ovulation: bool = True,
@@ -1501,8 +1545,13 @@ def generate_ics(
         "VERSION:2.0",
         f"PRODID:-//Relax//Cycle Forecast for {username}//EN",
         "CALSCALE:GREGORIAN",
-        "METHOD:PUBLISH"
+        "METHOD:PUBLISH",
+        f"X-WR-CALNAME:Relax Cycle ({username})"
     ]
+    clean_email = user_email.strip()
+    if clean_email:
+        ics_lines.append(f"X-WR-CALDESC:Relax Cycle Health Calendar for {clean_email}")
+
     for _, row in cycles.iterrows():
         # 1. Bleeding / Period / Rest Time
         if include_period:
@@ -1510,30 +1559,38 @@ def generate_ics(
             end_str = (row["Bleeding end"] + timedelta(days=1)).strftime("%Y%m%d")
             window_note = row.get("Expected Window (± Margin)", "Regular cycle")
             summary_name = period_label if period_label.strip() else f"Rest Time ({username})"
-            ics_lines.extend([
+            evt = [
                 "BEGIN:VEVENT",
                 f"SUMMARY:{summary_name}",
                 f"DTSTART;VALUE=DATE:{start_str}",
                 f"DTEND;VALUE=DATE:{end_str}",
                 f"DESCRIPTION:Relax sync. Expected window: {window_note}",
-                "STATUS:CONFIRMED",
-                "END:VEVENT"
-            ])
+                "STATUS:CONFIRMED"
+            ]
+            if clean_email:
+                evt.append(f"ORGANIZER;CN=Relax Health:mailto:{clean_email}")
+                evt.append(f"ATTENDEE;ROLE=REQ-PARTICIPANT;PARTSTAT=ACCEPTED;CN={username}:mailto:{clean_email}")
+            evt.append("END:VEVENT")
+            ics_lines.extend(evt)
 
         # 2. Ovulation Peak
         if include_ovulation:
             ov_str = row["Ovulation estimate"].strftime("%Y%m%d")
             ov_end = (row["Ovulation estimate"] + timedelta(days=1)).strftime("%Y%m%d")
             summary_name = ovulation_label if ovulation_label.strip() else f"Ovulation ({username})"
-            ics_lines.extend([
+            evt = [
                 "BEGIN:VEVENT",
                 f"SUMMARY:{summary_name}",
                 f"DTSTART;VALUE=DATE:{ov_str}",
                 f"DTEND;VALUE=DATE:{ov_end}",
-                f"DESCRIPTION:Estimated peak ovulation day.",
-                "STATUS:CONFIRMED",
-                "END:VEVENT"
-            ])
+                "DESCRIPTION:Estimated peak ovulation day.",
+                "STATUS:CONFIRMED"
+            ]
+            if clean_email:
+                evt.append(f"ORGANIZER;CN=Relax Health:mailto:{clean_email}")
+                evt.append(f"ATTENDEE;ROLE=REQ-PARTICIPANT;PARTSTAT=ACCEPTED;CN={username}:mailto:{clean_email}")
+            evt.append("END:VEVENT")
+            ics_lines.extend(evt)
 
         # 3. Fertile Window
         if include_fertile:
@@ -1542,15 +1599,19 @@ def generate_ics(
             f_start_str = f_start.strftime("%Y%m%d")
             f_end_str = f_end.strftime("%Y%m%d")
             summary_name = fertile_label if fertile_label.strip() else f"Fertile Window ({username})"
-            ics_lines.extend([
+            evt = [
                 "BEGIN:VEVENT",
                 f"SUMMARY:{summary_name}",
                 f"DTSTART;VALUE=DATE:{f_start_str}",
                 f"DTEND;VALUE=DATE:{f_end_str}",
-                f"DESCRIPTION:Estimated high fertility window.",
-                "STATUS:CONFIRMED",
-                "END:VEVENT"
-            ])
+                "DESCRIPTION:Estimated high fertility window.",
+                "STATUS:CONFIRMED"
+            ]
+            if clean_email:
+                evt.append(f"ORGANIZER;CN=Relax Health:mailto:{clean_email}")
+                evt.append(f"ATTENDEE;ROLE=REQ-PARTICIPANT;PARTSTAT=ACCEPTED;CN={username}:mailto:{clean_email}")
+            evt.append("END:VEVENT")
+            ics_lines.extend(evt)
 
         # 4. PMS Window
         if include_pms:
@@ -1559,18 +1620,256 @@ def generate_ics(
             pms_start_str = pms_start.strftime("%Y%m%d")
             pms_end_str = pms_end.strftime("%Y%m%d")
             summary_name = pms_label if pms_label.strip() else f"PMS Window ({username})"
-            ics_lines.extend([
+            evt = [
                 "BEGIN:VEVENT",
                 f"SUMMARY:{summary_name}",
                 f"DTSTART;VALUE=DATE:{pms_start_str}",
                 f"DTEND;VALUE=DATE:{pms_end_str}",
-                f"DESCRIPTION:Pre-menstrual gentle self-care window.",
-                "STATUS:CONFIRMED",
-                "END:VEVENT"
-            ])
+                "DESCRIPTION:Pre-menstrual gentle self-care window.",
+                "STATUS:CONFIRMED"
+            ]
+            if clean_email:
+                evt.append(f"ORGANIZER;CN=Relax Health:mailto:{clean_email}")
+                evt.append(f"ATTENDEE;ROLE=REQ-PARTICIPANT;PARTSTAT=ACCEPTED;CN={username}:mailto:{clean_email}")
+            evt.append("END:VEVENT")
+            ics_lines.extend(evt)
 
     ics_lines.append("END:VCALENDAR")
     return "\r\n".join(ics_lines)
+
+def generate_progress_report_html(
+    username: str,
+    cycles: pd.DataFrame,
+    user_symptoms: dict,
+    health_res: dict,
+    cycle_length: int,
+    period_length: int,
+    phase_name: str,
+    today_dt: date
+) -> str:
+    """Generates an elegant, print-ready HTML/PDF progress and medical cycle report."""
+    cycle_rows_html = []
+    for _, r in cycles.head(15).iterrows():
+        cycle_rows_html.append(f"""
+        <tr>
+            <td style="text-align:center; font-weight:600;">Cycle #{int(r['Cycle'])}</td>
+            <td>{r['Start'].strftime('%d %b %Y')}</td>
+            <td>{r['Bleeding end'].strftime('%d %b %Y')}</td>
+            <td>{r['Ovulation estimate'].strftime('%d %b %Y')}</td>
+            <td><b>{r['Next period'].strftime('%d %b %Y')}</b></td>
+            <td>{r.get('Expected Window (± Margin)', 'Regular')}</td>
+        </tr>
+        """)
+
+    sym_rows_html = []
+    for s_date, s_data in sorted(user_symptoms.items(), reverse=True)[:25]:
+        sym_rows_html.append(f"""
+        <tr>
+            <td style="font-weight:600;">{s_date.strftime('%d %b %Y')}</td>
+            <td>{s_data.get('flow', 'None')}</td>
+            <td>{s_data.get('mood', 'N/A')}</td>
+            <td>{s_data.get('energy', 'Moderate')}</td>
+            <td>{s_data.get('symptoms', 'None')}</td>
+            <td><i>{s_data.get('notes', '')}</i></td>
+        </tr>
+        """)
+
+    if not sym_rows_html:
+        sym_rows_html.append("<tr><td colspan='6' style='text-align:center; color:#64748b; padding:12px;'>No symptom entries logged yet.</td></tr>")
+
+    active_factors = ", ".join(health_res.get("active_factors_summary", [])) or "None reported (Standard physiological baseline)"
+    advisories = "".join(f"<li>{adv}</li>" for adv in health_res.get("care_tips", [])) or "<li>Maintain balanced hydration, whole-food nourishment, and consistent sleep.</li>"
+
+    html_content = f"""<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Relax &bull; Medical & Cycle Progress Report &bull; {username}</title>
+<style>
+    @page {{
+        size: A4 portrait;
+        margin: 15mm;
+    }}
+    body {{
+        font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+        color: #1e293b;
+        background: #ffffff;
+        margin: 0;
+        padding: 20px;
+        font-size: 11pt;
+        line-height: 1.45;
+    }}
+    .print-bar {{
+        background: #f1f5f9;
+        border-bottom: 1px solid #cbd5e1;
+        padding: 10px 20px;
+        position: sticky;
+        top: 0;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 20px;
+        border-radius: 8px;
+    }}
+    .print-btn {{
+        background: #e11d48;
+        color: #ffffff;
+        border: none;
+        padding: 8px 16px;
+        font-size: 13pt;
+        font-weight: 600;
+        border-radius: 6px;
+        cursor: pointer;
+    }}
+    .print-btn:hover {{ background: #be185d; }}
+    @media print {{
+        .print-bar {{ display: none !important; }}
+        body {{ padding: 0; }}
+    }}
+    .report-header {{
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        border-bottom: 2px solid #e11d48;
+        padding-bottom: 12px;
+        margin-bottom: 20px;
+    }}
+    .brand {{ font-size: 24pt; font-weight: 800; color: #be185d; }}
+    .brand span {{ color: #1e293b; }}
+    .meta-box {{
+        display: grid;
+        grid-template-columns: repeat(4, 1fr);
+        gap: 12px;
+        background: #fff1f2;
+        border: 1px solid #fecdd3;
+        border-radius: 8px;
+        padding: 12px 16px;
+        margin-bottom: 20px;
+    }}
+    .meta-item b {{ display: block; font-size: 8.5pt; color: #9f1239; text-transform: uppercase; }}
+    .meta-item span {{ font-size: 12pt; font-weight: 700; color: #1e293b; }}
+    h2 {{
+        font-size: 13pt;
+        color: #be185d;
+        border-bottom: 1px solid #e2e8f0;
+        padding-bottom: 4px;
+        margin-top: 24px;
+        margin-bottom: 10px;
+    }}
+    table {{
+        width: 100%;
+        border-collapse: collapse;
+        margin-bottom: 18px;
+        font-size: 9.5pt;
+    }}
+    th {{
+        background: #f8fafc;
+        border: 1px solid #cbd5e1;
+        padding: 6px 8px;
+        text-align: left;
+        color: #334155;
+    }}
+    td {{
+        border: 1px solid #e2e8f0;
+        padding: 6px 8px;
+    }}
+    tr:nth-child(even) {{ background: #fdf2f8; }}
+    .footer-note {{
+        margin-top: 30px;
+        border-top: 1px dashed #cbd5e1;
+        padding-top: 10px;
+        font-size: 8.5pt;
+        color: #64748b;
+        text-align: center;
+    }}
+</style>
+</head>
+<body>
+<div class="print-bar">
+    <div><strong>Relax Cycle Health Progress Summary</strong> &bull; Print or Save as PDF for your healthcare provider</div>
+    <button class="print-btn" onclick="window.print()">🖨️ Print / Save to PDF</button>
+</div>
+
+<div class="report-header">
+    <div>
+        <div class="brand">🌸 Relax <span>Cycle Progress Report</span></div>
+        <div style="font-size: 10pt; color: #64748b;">Private & Cycle-Synced Women's Health Companion</div>
+    </div>
+    <div style="text-align: right; font-size: 9pt; color: #475569;">
+        <div><b>Report Date:</b> {today_dt.strftime('%d %B %Y')}</div>
+        <div><b>Account:</b> {username}</div>
+    </div>
+</div>
+
+<div class="meta-box">
+    <div class="meta-item">
+        <b>Patient / User</b>
+        <span>{username}</span>
+    </div>
+    <div class="meta-item">
+        <b>Cycle Baseline</b>
+        <span>{cycle_length} Days (Period: {period_length}d)</span>
+    </div>
+    <div class="meta-item">
+        <b>Current Phase</b>
+        <span>{phase_name}</span>
+    </div>
+    <div class="meta-item">
+        <b>Predictability Score</b>
+        <span>{health_res.get('predictability_score', 85)}% ({health_res.get('predictability_rating', 'Good')})</span>
+    </div>
+</div>
+
+<div style="background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 8px; padding: 10px 14px; margin-bottom: 16px;">
+    <div style="font-weight: 700; color: #0f172a; margin-bottom: 4px;">🩺 Active Health Profile & Biological Factors:</div>
+    <div style="font-size: 9.5pt; color: #334155; margin-bottom: 6px;">{active_factors}</div>
+    <div style="font-weight: 600; font-size: 9pt; color: #475569;">Personalized Care & Cycle Protocols:</div>
+    <ul style="margin: 4px 0 0 18px; padding: 0; font-size: 9pt; color: #475569;">
+        {advisories}
+    </ul>
+</div>
+
+<h2>📅 Cycle Timeline & Fluctuation History</h2>
+<table>
+    <thead>
+        <tr>
+            <th>Cycle #</th>
+            <th>Cycle Start</th>
+            <th>Bleeding End</th>
+            <th>Ovulation Estimate</th>
+            <th>Next Period</th>
+            <th>Fluctuation Margin</th>
+        </tr>
+    </thead>
+    <tbody>
+        {''.join(cycle_rows_html)}
+    </tbody>
+</table>
+
+<h2>📝 Daily Symptom, Mood & Energy Progress Logs</h2>
+<table>
+    <thead>
+        <tr>
+            <th>Date</th>
+            <th>Flow</th>
+            <th>Mood</th>
+            <th>Energy</th>
+            <th>Physical Symptoms</th>
+            <th>Reflections & Self-Care Notes</th>
+        </tr>
+    </thead>
+    <tbody>
+        {''.join(sym_rows_html)}
+    </tbody>
+</table>
+
+<div class="footer-note">
+    ⚕️ <b>Medical Disclaimer:</b> This report is generated by Relax for personal health tracking, rhythm synchronization, and symptom logging purposes. Cycle calculations are educational estimates and should not be used as a contraceptive method or diagnostic confirmation.
+</div>
+</body>
+</html>"""
+    return html_content
+
 
 def is_local_host_device() -> bool:
     """Determines whether the client connection is from this host laptop (127.0.0.1 or localhost)."""
@@ -1773,13 +2072,38 @@ if "app_reminders" not in st.session_state:
 
 cur_theme_name = st.session_state.get("app_bg_theme", "Blush Rose")
 cur_theme = THEMES.get(cur_theme_name, THEMES["Blush Rose"])
+text_pri = cur_theme.get("text_primary", "#1e293b")
+text_sec = cur_theme.get("text_secondary", "#475569")
+card_bg = cur_theme.get("card_bg", "#ffffff")
+card_border = cur_theme.get("card_border", "#e2e8f0")
+is_dark = cur_theme.get("is_dark", False)
+
 st.markdown(f"""
 <style>
-.stApp {{
+/* Consistent Background and Text Color across Laptop, Tablet and Phone */
+html, body, .stApp, [data-testid="stAppViewContainer"], [data-testid="stMain"], .main {{
     background: {cur_theme['bg_gradient']} !important;
+    background-attachment: fixed !important;
+    color: {text_pri} !important;
+}}
+
+/* High contrast typography for readability across all device screens */
+h1, h2, h3, h4, h5, h6, .hero-title, .calendar h3 {{
+    color: {text_pri} !important;
+}}
+p, span, label, .hero-subtitle {{
+    color: {text_sec} !important;
+}}
+[data-testid="stMetricValue"], [data-testid="stMetricLabel"] {{
+    color: {text_pri} !important;
+}}
+.calendar {{
+    background: {card_bg} !important;
+    border-color: {card_border} !important;
 }}
 </style>
 """, unsafe_allow_html=True)
+
 
 
 # Fetch historical cycle dates for this user
@@ -2081,8 +2405,8 @@ def render_notification_popover(phase_val: str, days_to_next: int, next_period_d
             st.session_state["acc_window_view"] = "settings"
             st.rerun()
 
-def render_account_window():
-    """Renders the sleek Account popover window with PIN Security, Settings, and centered Logout."""
+def render_account_window(health_factors_list: list = None):
+    """Renders the sleek Account popover window with PIN Security, Settings, centered Logout, and Active Health Factors."""
     sec_info = db.get_user_security_info(user_id)
     has_pin = sec_info["has_pin"]
     rec_type = sec_info.get("recovery_type", "question")
@@ -2101,10 +2425,20 @@ def render_account_window():
         if acc_view == "main":
             # Top right: user name
             st.markdown(f"""
-            <div style="display: flex; justify-content: flex-end; align-items: center; margin-bottom: 12px;">
+            <div style="display: flex; justify-content: flex-end; align-items: center; margin-bottom: 8px;">
                 <span style="font-size: 1.15rem; font-weight: 700; color: #1e293b;">👤 {username}</span>
             </div>
             """, unsafe_allow_html=True)
+            
+            # Active Health Factors inside Account
+            if health_factors_list:
+                chip_items = "".join(f"<span class='health-chip' style='display:inline-block; margin:2px;'>🩺 {f}</span>" for f in health_factors_list)
+                st.markdown(f"""
+                <div style='background: #f1f5f9; border: 1px solid #e2e8f0; border-radius: 8px; padding: 6px 10px; margin-bottom: 12px; font-size: 0.80rem;'>
+                    <div style='font-weight: 600; color: #334155; margin-bottom: 4px;'>🩺 Active Health Factors</div>
+                    <div>{chip_items}</div>
+                </div>
+                """, unsafe_allow_html=True)
             
             # On left / vertical stack
             # Button 1: Pin
@@ -2400,17 +2734,12 @@ with top_bar_col2:
         with notif_col:
             render_notification_popover(phase_name, days_to_next_period, active_cycle['Next period'])
         with acc_col:
-            render_account_window()
+            render_account_window(health_factors_list=health_res.get("active_factors_summary", []))
 
 
 tracked_note = ""
 if (today - start_date).days > 45:
     tracked_note = f" &bull; <i>Calculated from {start_date.strftime('%d %b %Y')} (Cycle #{int(active_cycle['Cycle'])})</i>"
-
-health_chip_html = ""
-if health_res["active_factors_summary"]:
-    chip_items = "".join(f"<span class='health-chip'>🩺 {f}</span>" for f in health_res["active_factors_summary"])
-    health_chip_html = f"<div style='margin-top: 4px; font-size: 8pt;'><b>Active Health Factors:</b> {chip_items}</div>"
 
 st.markdown(f"""
 <div class="hero-card">
@@ -2419,7 +2748,6 @@ st.markdown(f"""
         <span class="hero-badge badge-countdown">Next Period: {f'In {days_to_next_period} days' if days_to_next_period > 0 else 'Due today' if days_to_next_period == 0 else 'Overdue'} ({active_cycle['Next period'].strftime('%d %b')})</span>
         <span class="hero-badge {health_res['badge_class']}">Predictability: {health_res['predictability_score']}% ({health_res['predictability_rating']})</span>
     </div>
-    {health_chip_html}
 </div>
 """, unsafe_allow_html=True)
 
@@ -2651,7 +2979,7 @@ if st.session_state["active_nav"] in ["📅", "📅 Calendar"]:
         if existing_sym:
             s_c1, s_c2, _ = st.columns([1, 1, 3])
             with s_c1:
-                if st.button("💾 Save Log", type="primary", use_container_width=True, key=f"btn_quick_save_sym_{cal_date_str}"):
+                if st.button("💾 Save", type="primary", use_container_width=True, key=f"btn_quick_save_sym_{cal_date_str}"):
                     mood_str = ", ".join(q_mood)
                     sym_str = ", ".join(q_syms)
                     db.save_daily_symptom(user_id, selected_date_cal, q_flow, mood_str, sym_str, q_energy, q_notes)
@@ -2667,7 +2995,7 @@ if st.session_state["active_nav"] in ["📅", "📅 Calendar"]:
         else:
             s_c1, _ = st.columns([1, 4])
             with s_c1:
-                if st.button("💾 Save Log", type="primary", use_container_width=True, key=f"btn_quick_save_sym_{cal_date_str}"):
+                if st.button("💾 Save", type="primary", use_container_width=True, key=f"btn_quick_save_sym_{cal_date_str}"):
                     mood_str = ", ".join(q_mood)
                     sym_str = ", ".join(q_syms)
                     db.save_daily_symptom(user_id, selected_date_cal, q_flow, mood_str, sym_str, q_energy, q_notes)
@@ -2701,11 +3029,21 @@ if st.session_state["active_nav"] in ["📅", "📅 Calendar"]:
             for meal_name, meal_desc in diet_info["sample_meals"].items():
                 st.markdown(f"• **{meal_name}:** {meal_desc}")
 
-    # Personalized Calendar Sync with Custom Events & Custom Names
+    # Personalized Calendar Sync with Email ID & Custom Names
     st.markdown("<div style='margin-top: 14px;'></div>", unsafe_allow_html=True)
-    with st.expander("📲 Sync to Phone Calendar (Custom Event Selection & Private Names)", expanded=False):
-        st.write("Select which events to sync and customize their names for personal privacy (e.g. use **'🌸 Rest Time'** instead of *'Period'*):")
+    with st.expander("📲 Connect Period Stages to Calendar with Email ID", expanded=False):
+        st.write("Connect upcoming period, ovulation, and cycle stages directly to your personal calendar (Google, Apple, or Outlook) using your email ID:")
         
+        cal_email_in = st.text_input(
+            "📧 Enter Your Email ID for Calendar Sync",
+            value=st.session_state.get("cal_sync_email_val", ""),
+            placeholder="e.g. yourname@gmail.com",
+            key="input_cal_sync_email",
+            help="Allows calendar invitations and event reminders to sync with your phone and email account."
+        )
+        if cal_email_in.strip():
+            st.session_state["cal_sync_email_val"] = cal_email_in.strip()
+            
         sync_c1, sync_c2 = st.columns(2)
         with sync_c1:
             sync_period = st.checkbox("🩸 Bleeding / Period Dates", value=True, key="sync_chk_period")
@@ -2744,6 +3082,7 @@ if st.session_state["active_nav"] in ["📅", "📅 Calendar"]:
         custom_ics_content = generate_ics(
             cycles=cycles,
             username=username,
+            user_email=cal_email_in.strip(),
             include_period=sync_period,
             period_label=custom_period_label,
             include_ovulation=sync_ovulation,
@@ -2754,15 +3093,123 @@ if st.session_state["active_nav"] in ["📅", "📅 Calendar"]:
             pms_label=custom_pms_label
         )
         
-        st.download_button(
-            label="📅 Download Customized Calendar (.ics)",
-            data=custom_ics_content,
-            file_name=f"Relax_Sync_{username}.ics",
-            mime="text/calendar",
-            type="primary",
-            use_container_width=True
+        cal_btn_c1, cal_btn_c2 = st.columns([1.5, 1])
+        with cal_btn_c1:
+            st.download_button(
+                label="📅 Download Calendar Sync (.ics)",
+                data=custom_ics_content,
+                file_name=f"Relax_Sync_{username}.ics",
+                mime="text/calendar",
+                type="primary",
+                use_container_width=True
+            )
+        with cal_btn_c2:
+            if not cycles.empty:
+                next_row = cycles.iloc[0]
+                g_start = next_row["Start"].strftime("%Y%m%d")
+                g_end = (next_row["Bleeding end"] + timedelta(days=1)).strftime("%Y%m%d")
+                g_title = urllib.parse.quote(custom_period_label)
+                g_desc = urllib.parse.quote(f"Relax Cycle Health reminder for {username}. Cycle length: {cycle_length_used} days.")
+                g_email_param = f"&add={urllib.parse.quote(cal_email_in.strip())}" if cal_email_in.strip() else ""
+                gcal_link = f"https://calendar.google.com/calendar/render?action=TEMPLATE&text={g_title}&dates={g_start}/{g_end}&details={g_desc}{g_email_param}"
+                st.link_button("🌐 Open in Google Calendar", gcal_link, use_container_width=True)
+                
+        st.caption("✨ Compatible with Google Calendar (Android / Web), Apple Calendar (iPhone / Mac), and Microsoft Outlook.")
+
+    # Whole Progress Export: MS Sheet or PDF Report based on user choice
+    st.markdown("<div style='margin-top: 14px;'></div>", unsafe_allow_html=True)
+    with st.expander("📊 Export Whole Progress (MS Sheet or PDF Report)", expanded=False):
+        st.write("Download your entire progress including cycle timeline forecasts, daily symptoms, moods, and health factor advisories:")
+        
+        progress_fmt_choice = st.radio(
+            "Select Format:",
+            ["📑 MS Sheet (Excel .xlsx)", "📄 PDF / Printable Health Report (.html / .pdf)"],
+            horizontal=True,
+            key="progress_export_fmt_choice"
         )
-        st.caption("Compatible with Apple Calendar (iPhone/Mac), Google Calendar (Android), and Microsoft Outlook.")
+        
+        if "MS Sheet" in progress_fmt_choice:
+            excel_bytes = io.BytesIO()
+            with pd.ExcelWriter(excel_bytes, engine="openpyxl") as writer:
+                # 1. Cycle Timeline
+                export_cycles = cycles.copy()
+                for d_col in ["Start", "Bleeding end", "Ovulation estimate", "Next period"]:
+                    if d_col in export_cycles.columns:
+                        export_cycles[d_col] = export_cycles[d_col].astype(str)
+                export_cycles.to_excel(writer, sheet_name="Cycle_Timeline", index=False)
+                
+                # 2. Daily Symptoms Log
+                sym_export_rows = []
+                for s_dt, s_info in sorted(user_symptoms.items(), reverse=True):
+                    sym_export_rows.append({
+                        "Date": str(s_dt),
+                        "Flow": s_info.get("flow", "None"),
+                        "Mood": s_info.get("mood", "N/A"),
+                        "Energy": s_info.get("energy", "Moderate"),
+                        "Symptoms": s_info.get("symptoms", ""),
+                        "Reflections_Notes": s_info.get("notes", "")
+                    })
+                if not sym_export_rows:
+                    sym_export_rows = [{"Date": "No symptom entries yet", "Flow": "", "Mood": "", "Energy": "", "Symptoms": "", "Reflections_Notes": ""}]
+                pd.DataFrame(sym_export_rows).to_excel(writer, sheet_name="Daily_Symptoms_Log", index=False)
+                
+                # 3. Medical & Profile Summary
+                prof_summary_rows = [
+                    {"Parameter": "User Name", "Value": username},
+                    {"Parameter": "Baseline Cycle Length", "Value": f"{cycle_length_used} days"},
+                    {"Parameter": "Baseline Period Length", "Value": f"{period_length} days"},
+                    {"Parameter": "Current Phase", "Value": phase_name},
+                    {"Parameter": "Predictability Score", "Value": f"{health_res['predictability_score']}% ({health_res['predictability_rating']})"},
+                    {"Parameter": "Active Health Factors", "Value": ", ".join(health_res["active_factors_summary"]) or "None reported"},
+                    {"Parameter": "Total Cycles Logged", "Value": len(user_logs)},
+                    {"Parameter": "Export Date", "Value": str(date.today())}
+                ]
+                pd.DataFrame(prof_summary_rows).to_excel(writer, sheet_name="Health_Summary", index=False)
+                
+            excel_output = excel_bytes.getvalue()
+            
+            exp_c1, exp_c2 = st.columns([2, 1])
+            with exp_c1:
+                st.download_button(
+                    label="📊 Download Whole Progress in MS Sheet (.xlsx)",
+                    data=excel_output,
+                    file_name=f"Relax_Whole_Progress_{username}_{date.today().strftime('%Y%m%d')}.xlsx",
+                    mime="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+                    type="primary",
+                    use_container_width=True
+                )
+            with exp_c2:
+                csv_bytes = export_cycles.to_csv(index=False).encode('utf-8')
+                st.download_button(
+                    label="📥 Download CSV (.csv)",
+                    data=csv_bytes,
+                    file_name=f"Relax_Cycles_{username}_{date.today().strftime('%Y%m%d')}.csv",
+                    mime="text/csv",
+                    use_container_width=True
+                )
+            st.caption("Microsoft Excel (.xlsx) workbook includes separate sheets for Cycle Timeline, Daily Symptoms Log, and Health Profile Summary.")
+
+        else:
+            med_report_html = generate_progress_report_html(
+                username=username,
+                cycles=cycles,
+                user_symptoms=user_symptoms,
+                health_res=health_res,
+                cycle_length=cycle_length_used,
+                period_length=period_length,
+                phase_name=phase_name,
+                today_dt=today
+            )
+            st.download_button(
+                label="📄 Download Health Progress Report (PDF / Printable HTML)",
+                data=med_report_html.encode('utf-8'),
+                file_name=f"Relax_Medical_Progress_Report_{username}_{date.today().strftime('%Y%m%d')}.html",
+                mime="text/html",
+                type="primary",
+                use_container_width=True
+            )
+            st.caption("💡 When you open the downloaded report in any browser, click **'🖨️ Print / Save to PDF'** to instantly save or print your formatted medical PDF report.")
+
 
 # =========================================================
 # VIEW 2: 💬 Chat (AI Cycle & Menstrual Wellness Assistant)
@@ -3118,7 +3565,7 @@ elif st.session_state["active_nav"] in ["📝", "📝 Symptoms Update"]:
 
         note_text = st.text_area("Personal Notes & Self-Care Reflections", value=existing_v4.get("notes", ""), placeholder="E.g., chamomile tea helped cramps, slept 8 hours...", key=f"sym_notes_{v4_str}")
         
-        if st.button("💾 Save Daily Log", type="primary", use_container_width=True, key="btn_save_sym"):
+        if st.button("💾 Save", type="primary", use_container_width=True, key="btn_save_sym"):
             mood_str = ", ".join(mood_options)
             symptom_str = ", ".join(symptom_options)
             db.save_daily_symptom(user_id, log_date, flow_option, mood_str, symptom_str, energy_option, note_text)
@@ -3151,91 +3598,6 @@ elif st.session_state["active_nav"] in ["📝", "📝 Symptoms Update"]:
                         st.success(f"Deleted entry for {s_date.strftime('%d %b %Y')}")
                         st.rerun()
 
-# ---------------------------------------------------------
-# Database Management, Data Portability & Cloud Sync
-# (Host Laptop ONLY & Krishna Account ONLY - Completely hidden for all other devices and users)
-# ---------------------------------------------------------
-if is_local_host_device() and username.lower() == "krishna":
-    st.markdown("---")
-    st.subheader("💾 My Database & Data Backups")
-    st.caption(f"All cycle history, personal health conditions, and daily symptoms for **{username}** are persistently saved in the database.")
-
-    db_stats = db.get_database_stats()
-    db_col1, db_col2, db_col3, db_col4 = st.columns(4)
-    db_col1.metric("Database File", db_stats["database_file"], help="Persistent SQLite database file stored on disk.")
-    db_col2.metric("Cycles Saved", f"{len(user_logs)} cycles", help="Number of period start dates saved in database for this account.")
-    db_col3.metric("Symptoms Logged", f"{len(user_symptoms)} records", help="Daily symptoms, moods, and energy logs saved in database.")
-    db_col4.metric("Database Status", "Connected 🟢", help="All changes auto-save automatically in real-time.")
-
-    with st.expander("📦 Data Portability: Download Backup or Restore Data", expanded=False):
-        exp_col, imp_col = st.columns(2)
-        with exp_col:
-            st.markdown("#### 📥 Export My Complete Health Record")
-            st.write("Download all your historical cycle dates, daily symptoms, moods, and health conditions as a JSON file.")
-            user_backup = db.export_user_data(user_id)
-            backup_json_str = json.dumps(user_backup, indent=2)
-            st.download_button(
-                label="💾 Download Backup (.json)",
-                data=backup_json_str,
-                file_name=f"Relax_Backup_{username}_{date.today().strftime('%Y%m%d')}.json",
-                mime="application/json",
-                type="primary"
-            )
-            st.caption("You can save this file as a personal backup or import it onto another computer.")
-
-        with imp_col:
-            st.markdown("#### 📤 Restore / Import Backup")
-            st.write("Upload a previously downloaded Relax backup file to restore all your cycles and symptom records.")
-            uploaded_backup = st.file_uploader("Choose Relax backup JSON file", type=["json"], key="backup_uploader")
-            if uploaded_backup is not None:
-                try:
-                    backup_data = json.load(uploaded_backup)
-                    if st.button("🔄 Confirm & Import to Database"):
-                        success, msg = db.import_user_data(user_id, backup_data)
-                        if success:
-                            st.success(msg)
-                            st.rerun()
-                        else:
-                            st.error(msg)
-                except Exception as e:
-                    st.error(f"Error reading backup file: {e}")
-
-    with st.expander("🔒 Account Privacy & Security PIN", expanded=False):
-        pin_col1, pin_col2 = st.columns(2)
-        with pin_col1:
-            st.write("Set or update a 4-digit PIN / password to lock your account on this device so nobody else can view your personal cycle and symptom logs.")
-            new_pin_input = st.text_input("New PIN / Password", type="password", key="new_pin_field", placeholder="e.g. 1234")
-            if st.button("🔒 Save Security PIN"):
-                if new_pin_input.strip():
-                    db.set_user_pin(user_id, new_pin_input.strip())
-                    st.success("Security PIN saved! Your profile is now locked.")
-                    st.rerun()
-                else:
-                    st.warning("Please enter a valid PIN.")
-        with pin_col2:
-            if user_has_pin:
-                st.info(f"✅ Account **{username}** is protected by a PIN.")
-                if st.button("🔓 Remove PIN Lock"):
-                    db.set_user_pin(user_id, "")
-                    st.success("PIN lock removed.")
-                    st.rerun()
-            else:
-                st.caption("No PIN currently set. Your account can be accessed directly from the profile selector.")
-
-    with st.expander("🌐 Cloud Database Deployment Guide (PostgreSQL / Supabase)", expanded=False):
-        st.markdown("""
-        #### How to Deploy Relax with a Permanent Cloud Database:
-        When hosting Relax on **Streamlit Community Cloud** or any cloud container:
-        1. **Local SQLite (`relax.db`)** works great locally on your computer.
-        2. For a cloud deployment shared across multiple phones, you can link a **free PostgreSQL database** (such as [Supabase](https://supabase.com) or [Neon](https://neon.tech)):
-           - Create a free project on Supabase or Neon.
-           - Copy your database connection string: `postgresql://user:password@host/dbname`.
-           - In Streamlit Cloud, add it under **Settings > Secrets**:
-             ```toml
-             DATABASE_URL = "postgresql://user:password@host:5432/postgres"
-             ```
-           - Relax will automatically persist all user accounts in the cloud without local ephemeral file wipes!
-        """)
 
 
 # ---------------------------------------------------------

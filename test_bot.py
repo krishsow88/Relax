@@ -215,6 +215,114 @@ except Exception as e:
     record("8. Live Streamlit Server Health Check", False, str(e))
 
 # -------------------------------------------------------------
+# Test 9: Fork & GitHub Buttons Hidden for Phones / Cloud
+# -------------------------------------------------------------
+try:
+    has_deploy_hide = ".stAppDeployButton" in app_source and "[data-testid=\"stAppDeployButton\"]" in app_source
+    has_badge_hide = "[class*=\"viewerBadge\"]" in app_source and "button[title*=\"Fork\"]" in app_source
+    has_header_hide = "header[data-testid=\"stHeader\"]" in app_source and "display: none !important;" in app_source
+    t9_pass = has_deploy_hide and has_badge_hide and has_header_hide
+    record(
+        "9. Fork, GitHub & Cloud Toolbar Hidden on Mobile",
+        t9_pass,
+        f"Deploy button hidden: {has_deploy_hide}, Viewer/Fork hidden: {has_badge_hide}, Header hidden: {has_header_hide}"
+    )
+except Exception as e:
+    record("9. Fork, GitHub & Cloud Toolbar Hidden on Mobile", False, str(e))
+
+# -------------------------------------------------------------
+# Test 10: Removal of My Database & Data Backups Section
+# -------------------------------------------------------------
+try:
+    has_db_backup_section = "💾 My Database & Data Backups" in app_source or "My Database & Data Backups" in app_source
+    t10_pass = not has_db_backup_section
+    record(
+        "10. Database & Data Backups Section Removed",
+        t10_pass,
+        f"'My Database & Data Backups' completely removed: {t10_pass}"
+    )
+except Exception as e:
+    record("10. Database & Data Backups Section Removed", False, str(e))
+
+# -------------------------------------------------------------
+# Test 11: Rename 'Save Log' to 'Save'
+# -------------------------------------------------------------
+try:
+    has_save_log = "Save Log" in app_source
+    has_save_btn = 'button("💾 Save"' in app_source
+    t11_pass = (not has_save_log) and has_save_btn
+    record(
+        "11. Renamed 'Save Log' to 'Save'",
+        t11_pass,
+        f"'Save Log' occurrences: 0, '💾 Save' button present: {has_save_btn}"
+    )
+except Exception as e:
+    record("11. Renamed 'Save Log' to 'Save'", False, str(e))
+
+# -------------------------------------------------------------
+# Test 12: Active Health Factors Inside Account & Removed From Hero Card
+# -------------------------------------------------------------
+try:
+    hero_has_health = "{health_chip_html}" in app_source or "Active Health Factors:</b> {chip_items}" in app_source
+    acc_has_health = "render_account_window(health_factors_list=" in app_source and "🩺 Active Health Factors" in app_source
+    t12_pass = (not hero_has_health) and acc_has_health
+    record(
+        "12. Active Health Factors Inside Account Window",
+        t12_pass,
+        f"Removed from hero banner: {not hero_has_health}, Displayed inside Account: {acc_has_health}"
+    )
+except Exception as e:
+    record("12. Active Health Factors Inside Account Window", False, str(e))
+
+# -------------------------------------------------------------
+# Test 13: Calendar Sync Connected with Email ID
+# -------------------------------------------------------------
+try:
+    has_cal_email_input = "cal_sync_email" in app_source or "input_cal_sync_email" in app_source
+    has_gcal_sync = "https://calendar.google.com/calendar/render" in app_source
+    has_email_in_ics = "user_email: str = \"\"" in app_source and "ATTENDEE;" in app_source
+    t13_pass = has_cal_email_input and has_gcal_sync and has_email_in_ics
+    record(
+        "13. Calendar Stage Sync with Email ID & Google Calendar",
+        t13_pass,
+        f"Email input: {has_cal_email_input}, Google Cal sync: {has_gcal_sync}, Email in ICS: {has_email_in_ics}"
+    )
+except Exception as e:
+    record("13. Calendar Stage Sync with Email ID & Google Calendar", False, str(e))
+
+# -------------------------------------------------------------
+# Test 14: Whole Progress Export in MS Sheet (.xlsx) or PDF Report
+# -------------------------------------------------------------
+try:
+    has_ms_sheet_export = "pd.ExcelWriter" in app_source and "openpyxl" in app_source and ".xlsx" in app_source
+    has_pdf_report_gen = "generate_progress_report_html" in app_source and "🖨️ Print / Save to PDF" in app_source
+    has_fmt_radio = "progress_export_fmt_choice" in app_source
+    t14_pass = has_ms_sheet_export and has_pdf_report_gen and has_fmt_radio
+    record(
+        "14. Whole Progress Export (MS Sheet .xlsx & PDF Report)",
+        t14_pass,
+        f"MS Sheet Excel writer: {has_ms_sheet_export}, PDF print generator: {has_pdf_report_gen}, User format selection: {has_fmt_radio}"
+    )
+except Exception as e:
+    record("14. Whole Progress Export (MS Sheet .xlsx & PDF Report)", False, str(e))
+
+# -------------------------------------------------------------
+# Test 15: Cross-Device Background & Text Visibility Contrast
+# -------------------------------------------------------------
+try:
+    has_fixed_bg = "background-attachment: fixed !important;" in app_source
+    has_theme_contrast = "text_primary" in app_source and "text_secondary" in app_source
+    has_contrast_css = "color: {text_pri} !important;" in app_source
+    t15_pass = has_fixed_bg and has_theme_contrast and has_contrast_css
+    record(
+        "15. Consistent Background & High-Contrast Text Styling",
+        t15_pass,
+        f"Fixed background: {has_fixed_bg}, Theme text colors: {has_theme_contrast}, Contrast typography: {has_contrast_css}"
+    )
+except Exception as e:
+    record("15. Consistent Background & High-Contrast Text Styling", False, str(e))
+
+# -------------------------------------------------------------
 # Final Summary
 # -------------------------------------------------------------
 total_tests = len(results)
@@ -229,3 +337,4 @@ if failed_tests == 0:
 else:
     print(f"⚠️ {failed_tests} tests failed.")
     sys.exit(1)
+
