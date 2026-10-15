@@ -401,6 +401,86 @@ except Exception as e:
     record("20. User 'Krishna' Login with PIN '0192'", False, str(e))
 
 # -------------------------------------------------------------
+# Test 21: Expanded Popular Languages Support
+# -------------------------------------------------------------
+try:
+    with open("app.py", "r", encoding="utf-8") as f:
+        latest_source = f.read()
+    
+    popular_langs = ["English", "Español", "Français", "Deutsch", "中文", "हिन्दी", "العربية", "Português", "বাংলা", "Русский", "日本語", "한국어", "Italiano", "Türkçe", "Tiếng Việt", "తెలుగు", "தமிழ்", "मराठी", "اردو"]
+    langs_present = [l for l in popular_langs if f'"{l}":' in latest_source]
+    t21_pass = len(langs_present) >= 15
+    record(
+        "21. Popular Global Languages Expansion",
+        t21_pass,
+        f"Found {len(langs_present)}/{len(popular_langs)} languages: {', '.join(langs_present[:8])}..."
+    )
+except Exception as e:
+    record("21. Popular Global Languages Expansion", False, str(e))
+
+# -------------------------------------------------------------
+# Test 22: Demo Guest Create Account Option
+# -------------------------------------------------------------
+try:
+    has_demo_cre_btn = 'is_demo = (username.strip().lower() == "demo guest")' in latest_source and "Create Your Account" in latest_source
+    has_cre_acc_view = 'elif acc_view == "create_account":' in latest_source
+    t22_pass = has_demo_cre_btn and has_cre_acc_view
+    record(
+        "22. Demo Guest Account Window Shows 'Create Your Account'",
+        t22_pass,
+        f"Create Account button for Demo Guest: {has_demo_cre_btn}, Create Account form view: {has_cre_acc_view}"
+    )
+except Exception as e:
+    record("22. Demo Guest Account Window Shows 'Create Your Account'", False, str(e))
+
+# -------------------------------------------------------------
+# Test 23: Lighter Calendar Color Dynamic Theming
+# -------------------------------------------------------------
+try:
+    has_cal_bg_props = "cal_bg" in latest_source and "cal_border" in latest_source and "cal_header_bg" in latest_source
+    has_cal_dynamic_css = "background: {cal_bg} !important;" in latest_source and "border: 1.5px solid {cal_border} !important;" in latest_source
+    t23_pass = has_cal_bg_props and has_cal_dynamic_css
+    record(
+        "23. Calendar Light-Tint Theming",
+        t23_pass,
+        f"Calendar theme properties: {has_cal_bg_props}, Dynamic CSS application: {has_cal_dynamic_css}"
+    )
+except Exception as e:
+    record("23. Calendar Light-Tint Theming", False, str(e))
+
+# -------------------------------------------------------------
+# Test 24: Manage Reminders in Setting Modal Reroute
+# -------------------------------------------------------------
+try:
+    has_rem_dialog = '@st.dialog("⚙️ Manage Reminders & Stage Alerts")' in latest_source
+    has_rem_trigger = 'st.session_state["show_reminders_dialog"] = True' in latest_source
+    has_rem_hook = 'show_manage_reminders_dialog(user_id)' in latest_source
+    t24_pass = has_rem_dialog and has_rem_trigger and has_rem_hook
+    record(
+        "24. Manage Reminders Reroutes to Dialog Section",
+        t24_pass,
+        f"@st.dialog defined: {has_rem_dialog}, Trigger on button click: {has_rem_trigger}, Dialog rendered: {has_rem_hook}"
+    )
+except Exception as e:
+    record("24. Manage Reminders Reroutes to Dialog Section", False, str(e))
+
+# -------------------------------------------------------------
+# Test 25: Reduced Gap Between Relax and Calendar
+# -------------------------------------------------------------
+try:
+    has_compact_top_pad = "padding-top: 0.45rem !important;" in latest_source
+    has_zero_hero_margin = "margin-top: 0px !important;" in latest_source
+    nav_moved_to_bottom = latest_source.rfind("bottom_nav_bar") > latest_source.find("Health Disclaimer")
+    t25_pass = has_compact_top_pad and has_zero_hero_margin and nav_moved_to_bottom
+    record(
+        "25. Reduced Gap Between Relax Header and Calendar",
+        t25_pass,
+        f"Compact top padding: {has_compact_top_pad}, Zero hero margin: {has_zero_hero_margin}, Nav moved to end: {nav_moved_to_bottom}"
+    )
+except Exception as e:
+    record("25. Reduced Gap Between Relax Header and Calendar", False, str(e))
+
+# -------------------------------------------------------------
 # Final Summary
 # -------------------------------------------------------------
 total_tests = len(results)

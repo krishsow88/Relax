@@ -38,7 +38,12 @@ THEMES = {
         "name": "Blush Rose 🌸",
         "bg_gradient": "linear-gradient(180deg, #fff5f7 0%, #ffffff 100%)",
         "card_bg": "#ffffff",
-        "card_border": "#e2e8f0",
+        "card_border": "#fecdd3",
+        "cal_bg": "#fffbfa",
+        "cal_border": "#fed7e2",
+        "cal_header_bg": "#fff1f2",
+        "cal_empty_bg": "#fff5f7",
+        "cal_shadow": "rgba(225, 29, 72, 0.06)",
         "text_primary": "#1e293b",
         "text_secondary": "#475569",
         "accent": "#e11d48",
@@ -48,7 +53,12 @@ THEMES = {
         "name": "Calm Mint 🌿",
         "bg_gradient": "linear-gradient(180deg, #f0fdf4 0%, #ffffff 100%)",
         "card_bg": "#ffffff",
-        "card_border": "#e2e8f0",
+        "card_border": "#bbf7d0",
+        "cal_bg": "#f9fefb",
+        "cal_border": "#bbf7d0",
+        "cal_header_bg": "#ecfdf5",
+        "cal_empty_bg": "#f0fdf4",
+        "cal_shadow": "rgba(22, 163, 74, 0.06)",
         "text_primary": "#1e293b",
         "text_secondary": "#475569",
         "accent": "#16a34a",
@@ -58,7 +68,12 @@ THEMES = {
         "name": "Lavender Mist 💜",
         "bg_gradient": "linear-gradient(180deg, #faf5ff 0%, #ffffff 100%)",
         "card_bg": "#ffffff",
-        "card_border": "#e2e8f0",
+        "card_border": "#e9d5ff",
+        "cal_bg": "#fdfaff",
+        "cal_border": "#e9d5ff",
+        "cal_header_bg": "#f5f3ff",
+        "cal_empty_bg": "#faf5ff",
+        "cal_shadow": "rgba(147, 51, 234, 0.06)",
         "text_primary": "#1e293b",
         "text_secondary": "#475569",
         "accent": "#9333ea",
@@ -68,7 +83,12 @@ THEMES = {
         "name": "Warm Peach ☀️",
         "bg_gradient": "linear-gradient(180deg, #fff7ed 0%, #ffffff 100%)",
         "card_bg": "#ffffff",
-        "card_border": "#e2e8f0",
+        "card_border": "#fed7aa",
+        "cal_bg": "#fffbf7",
+        "cal_border": "#fed7aa",
+        "cal_header_bg": "#ffedd5",
+        "cal_empty_bg": "#fff7ed",
+        "cal_shadow": "rgba(234, 88, 12, 0.06)",
         "text_primary": "#1e293b",
         "text_secondary": "#475569",
         "accent": "#ea580c",
@@ -78,7 +98,12 @@ THEMES = {
         "name": "Ocean Breeze 🌊",
         "bg_gradient": "linear-gradient(180deg, #f0f9ff 0%, #ffffff 100%)",
         "card_bg": "#ffffff",
-        "card_border": "#e2e8f0",
+        "card_border": "#bae6fd",
+        "cal_bg": "#f8fcff",
+        "cal_border": "#bae6fd",
+        "cal_header_bg": "#e0f2fe",
+        "cal_empty_bg": "#f0f9ff",
+        "cal_shadow": "rgba(2, 132, 199, 0.06)",
         "text_primary": "#1e293b",
         "text_secondary": "#475569",
         "accent": "#0284c7",
@@ -89,6 +114,11 @@ THEMES = {
         "bg_gradient": "linear-gradient(180deg, #0f172a 0%, #1e293b 100%)",
         "card_bg": "#1e293b",
         "card_border": "#334155",
+        "cal_bg": "#1e293b",
+        "cal_border": "#334155",
+        "cal_header_bg": "#283548",
+        "cal_empty_bg": "#131d2e",
+        "cal_shadow": "rgba(0, 0, 0, 0.35)",
         "text_primary": "#f8fafc",
         "text_secondary": "#cbd5e1",
         "accent": "#2dd4bf",
@@ -154,6 +184,20 @@ TRANSLATIONS = {
         "predictability": "Vorhersagbarkeit",
         "today": "Heute"
     },
+    "中文": {
+        "app_title": "Relax",
+        "tagline": "您的私密经期与健康智能伴侣",
+        "diet": "饮食",
+        "notifications": "提醒通知",
+        "account": "账户",
+        "pin_security": "PIN 密码安全",
+        "setting": "设置",
+        "logout": "退出登录",
+        "current_phase": "当前阶段",
+        "next_period": "下次经期",
+        "predictability": "预测准确度",
+        "today": "今天"
+    },
     "हिन्दी": {
         "app_title": "रिलैक्स",
         "tagline": "आपका निजी और चक्र-संबद्ध स्वास्थ्य साथी",
@@ -168,6 +212,132 @@ TRANSLATIONS = {
         "predictability": "सटीकता",
         "today": "आज"
     },
+    "العربية": {
+        "app_title": "Relax",
+        "tagline": "رفيقك الصحي الخاص المتزامن مع دورتك",
+        "diet": "النظام الغذائي",
+        "notifications": "الإشعارات",
+        "account": "الحساب",
+        "pin_security": "أمان رمز PIN",
+        "setting": "الإعدادات",
+        "logout": "تسجيل الخروج",
+        "current_phase": "المرحلة الحالية",
+        "next_period": "الدورة القادمة",
+        "predictability": "دقة التوقع",
+        "today": "اليوم"
+    },
+    "Português": {
+        "app_title": "Relax",
+        "tagline": "Seu companheiro privado de saúde e ciclo menstrual",
+        "diet": "Dieta",
+        "notifications": "Notificações",
+        "account": "Conta",
+        "pin_security": "Segurança do PIN",
+        "setting": "Configurações",
+        "logout": "Sair",
+        "current_phase": "Fase atual",
+        "next_period": "Próxima menstruação",
+        "predictability": "Previsibilidade",
+        "today": "Hoje"
+    },
+    "বাংলা": {
+        "app_title": "রিল্যাক্স",
+        "tagline": "আপনার ব্যক্তিগত ও মাসিক চক্র স্বাস্থ্য সঙ্গী",
+        "diet": "খাদ্য ও পুষ্টি",
+        "notifications": "বিজ্ঞপ্তি",
+        "account": "অ্যাকাউন্ট",
+        "pin_security": "পিন নিরাপত্তা",
+        "setting": "সেটিংস",
+        "logout": "লগআউট",
+        "current_phase": "বর্তমান পর্যায়",
+        "next_period": "পরবর্তী পিরিয়ড",
+        "predictability": "নির্ভুলতা",
+        "today": "আজ"
+    },
+    "Русский": {
+        "app_title": "Relax",
+        "tagline": "Ваш личный помощник по отслеживанию цикла и здоровья",
+        "diet": "Питание",
+        "notifications": "Уведомления",
+        "account": "Аккаунт",
+        "pin_security": "PIN-защита",
+        "setting": "Настройки",
+        "logout": "Выйти",
+        "current_phase": "Текущая фаза",
+        "next_period": "Следующие месячные",
+        "predictability": "Точность прогноза",
+        "today": "Сегодня"
+    },
+    "日本語": {
+        "app_title": "Relax",
+        "tagline": "あなたのプライベートな月経周期と健康パートナー",
+        "diet": "食事・栄養",
+        "notifications": "通知・リマインダー",
+        "account": "アカウント",
+        "pin_security": "PIN セキュリティ",
+        "setting": "設定",
+        "logout": "ログアウト",
+        "current_phase": "現在のフェーズ",
+        "next_period": "次の生理",
+        "predictability": "予測精度",
+        "today": "今日"
+    },
+    "한국어": {
+        "app_title": "Relax",
+        "tagline": "나만의 맞춤형 월경 주기 및 건강 파트너",
+        "diet": "식단 및 영양",
+        "notifications": "알림",
+        "account": "계정",
+        "pin_security": "PIN 보안",
+        "setting": "설정",
+        "logout": "로그아웃",
+        "current_phase": "현재 주기 단계",
+        "next_period": "다음 월경일",
+        "predictability": "예측 정확도",
+        "today": "오늘"
+    },
+    "Italiano": {
+        "app_title": "Relax",
+        "tagline": "Il tuo compagno privato di salute sincronizzato col ciclo",
+        "diet": "Dieta",
+        "notifications": "Notifiche",
+        "account": "Account",
+        "pin_security": "Sicurezza PIN",
+        "setting": "Impostazioni",
+        "logout": "Disconnetti",
+        "current_phase": "Fase attuale",
+        "next_period": "Prossimo ciclo",
+        "predictability": "Prevedibilità",
+        "today": "Oggi"
+    },
+    "Türkçe": {
+        "app_title": "Relax",
+        "tagline": "Döngünüzle senkronize özel sağlık rehberiniz",
+        "diet": "Beslenme",
+        "notifications": "Bildirimler",
+        "account": "Hesap",
+        "pin_security": "PIN Güvenliği",
+        "setting": "Ayarlar",
+        "logout": "Çıkış Yap",
+        "current_phase": "Mevcut Aşama",
+        "next_period": "Gelecek Regl",
+        "predictability": "Tahmin Edilebilirlik",
+        "today": "Bugün"
+    },
+    "Tiếng Việt": {
+        "app_title": "Relax",
+        "tagline": "Người bạn đồng hành sức khỏe và chu kỳ riêng tư",
+        "diet": "Chế độ ăn",
+        "notifications": "Thông báo",
+        "account": "Tài khoản",
+        "pin_security": "Bảo mật mã PIN",
+        "setting": "Cài đặt",
+        "logout": "Đăng xuất",
+        "current_phase": "Giai đoạn hiện tại",
+        "next_period": "Kỳ kinh tiếp theo",
+        "predictability": "Độ chính xác",
+        "today": "Hôm nay"
+    },
     "తెలుగు": {
         "app_title": "రిలాక్స్",
         "tagline": "మీ వ్యక్తిగత మరియు చక్ర-సమకాలీకరించిన ఆరోగ్య సహచరుడు",
@@ -181,6 +351,48 @@ TRANSLATIONS = {
         "next_period": "తదుపరి పీరియడ్",
         "predictability": "ఖచ్చితత్వం",
         "today": "ఈరోజు"
+    },
+    "தமிழ்": {
+        "app_title": "ரிலாக்ஸ்",
+        "tagline": "உங்கள் தனிப்பட்ட மற்றும் மாதவிடாய் சுழற்சி ஆரோக்கியத் தோழன்",
+        "diet": "உணவு முறை",
+        "notifications": "அறிவிப்புகள்",
+        "account": "கணக்கு",
+        "pin_security": "பின் பாதுகாப்பு",
+        "setting": "அமைப்புகள்",
+        "logout": "வெளியேறு",
+        "current_phase": "தற்போதைய நிலை",
+        "next_period": "அடுத்த மாதவிடாய்",
+        "predictability": "துல்லியம்",
+        "today": "இன்று"
+    },
+    "मराठी": {
+        "app_title": "रिलॅक्स",
+        "tagline": "तुमचा खाजगी आणि मासिक पाळी आरोग्य साथी",
+        "diet": "आहार",
+        "notifications": "सूचना",
+        "account": "खाते",
+        "pin_security": "पिन सुरक्षा",
+        "setting": "सेटिंग्ज",
+        "logout": "लॉग आउट",
+        "current_phase": "सध्याचा टप्पा",
+        "next_period": "पुढील मासिक पाळी",
+        "predictability": "अचूकता",
+        "today": "आज"
+    },
+    "اردو": {
+        "app_title": "ریلیکس",
+        "tagline": "آپ کا نجی اور ماہواری کے چکر کے مطابق صحت کا ساتھی",
+        "diet": "خوراک",
+        "notifications": "اطلاعات",
+        "account": "اکاؤنٹ",
+        "pin_security": "پن سیکیورٹی",
+        "setting": "ترتیبات",
+        "logout": "لاگ آؤٹ",
+        "current_phase": "موجودہ مرحلہ",
+        "next_period": "اگلی ماہواری",
+        "predictability": "درستگی",
+        "today": "آج"
     }
 }
 
@@ -225,16 +437,17 @@ button[title*="Fork"] {
 }
 
 /* Clean top padding since developer toolbar is completely removed */
+/* Clean compact top padding */
 .block-container {
-    padding-top: 1.2rem !important;
-    padding-bottom: 95px !important;
+    padding-top: 0.45rem !important;
+    padding-bottom: 80px !important;
 }
 
 @media (max-width: 768px) {
     .block-container {
-        padding-top: 1.0rem !important;
-        padding-left: 0.9rem !important;
-        padding-right: 0.9rem !important;
+        padding-top: 0.35rem !important;
+        padding-left: 0.75rem !important;
+        padding-right: 0.75rem !important;
     }
 }
 
@@ -251,9 +464,9 @@ button[title*="Fork"] {
 .hero-card {
     background: transparent !important;
     border: none !important;
-    padding: 1px 0px 4px 0px !important;
-    margin-top: 1px !important;
-    margin-bottom: 4px !important;
+    padding: 0px !important;
+    margin-top: 0px !important;
+    margin-bottom: 2px !important;
     box-shadow: none !important;
     font-size: 7pt !important;
 }
@@ -538,7 +751,8 @@ div[data-testid="stButtonGroup"] button[data-selected] p,
     overflow-x: auto !important;
     overflow-y: hidden !important;
     gap: 14px !important;
-    padding: 6px 2px 14px 2px !important;
+    padding: 2px 2px 10px 2px !important;
+    margin-top: 0px !important;
     scroll-behavior: auto !important;
     -webkit-overflow-scrolling: touch !important;
     scroll-snap-type: x proximity !important;
@@ -2076,6 +2290,11 @@ text_pri = cur_theme.get("text_primary", "#1e293b")
 text_sec = cur_theme.get("text_secondary", "#475569")
 card_bg = cur_theme.get("card_bg", "#ffffff")
 card_border = cur_theme.get("card_border", "#e2e8f0")
+cal_bg = cur_theme.get("cal_bg", "#fffbfa")
+cal_border = cur_theme.get("cal_border", "#fed7e2")
+cal_header_bg = cur_theme.get("cal_header_bg", "#fff1f2")
+cal_empty_bg = cur_theme.get("cal_empty_bg", "#fff5f7")
+cal_shadow = cur_theme.get("cal_shadow", "rgba(0,0,0,0.04)")
 is_dark = cur_theme.get("is_dark", False)
 
 st.markdown(f"""
@@ -2098,8 +2317,17 @@ p, span, label, .hero-subtitle {{
     color: {text_pri} !important;
 }}
 .calendar {{
-    background: {card_bg} !important;
-    border-color: {card_border} !important;
+    background: {cal_bg} !important;
+    border: 1.5px solid {cal_border} !important;
+    box-shadow: 0 4px 16px {cal_shadow} !important;
+}}
+.calendar th {{
+    background: {cal_header_bg} !important;
+    border-bottom: 1.5px solid {cal_border} !important;
+    color: {text_sec} !important;
+}}
+.calendar td.empty {{
+    background: {cal_empty_bg} !important;
 }}
 </style>
 """, unsafe_allow_html=True)
@@ -2415,6 +2643,63 @@ def render_diet_notif_popover(phase_val: str, tooltip_hint: str = "Diet", contai
 
             st.caption("✨ Full 4-phase nutrition guide available in 💡 Insights tab.")
 
+@st.dialog("⚙️ Manage Reminders & Stage Alerts")
+def show_manage_reminders_dialog(uid: int):
+    st.markdown("<div style='font-size:0.85rem; color:#475569; margin-bottom:10px;'>Configure your cycle notifications, stage alerts, and check-in reminders:</div>", unsafe_allow_html=True)
+    rem_data = st.session_state.get("app_reminders", {})
+    
+    # 1. Period Approaching
+    r_period_on = st.toggle("🩸 Period Approaching Reminder", value=rem_data.get("period_approaching", True), key="diag_r_tog_period")
+    r_period_days = st.slider("Notify how many days before?", min_value=1, max_value=5, value=rem_data.get("period_days_before", 2), key="diag_r_slide_period")
+    r_period_note = st.text_input("Self-care note", value=rem_data.get("period_note", "Hydrate well and rest."), key="diag_r_note_period")
+    st.markdown("---")
+    
+    # 2. Fertile Window
+    r_fertile_on = st.toggle("🌱 High Fertility Window Reminder", value=rem_data.get("fertile_window", True), key="diag_r_tog_fertile")
+    r_fertile_note = st.text_input("Fertility care note", value=rem_data.get("fertile_note", "Entering high fertility stage."), key="diag_r_note_fertile")
+    st.markdown("---")
+    
+    # 3. Ovulation Peak
+    r_ov_on = st.toggle("🟣 Ovulation Peak Alert", value=rem_data.get("ovulation_peak", True), key="diag_r_tog_ov")
+    r_ov_note = st.text_input("Ovulation wellness note", value=rem_data.get("ovulation_note", "Ovulation peak day - peak vitality!"), key="diag_r_note_ov")
+    st.markdown("---")
+    
+    # 4. PMS Gentle Care
+    r_pms_on = st.toggle("✨ Pre-Menstrual Gentle Care Alert", value=rem_data.get("pms_care", True), key="diag_r_tog_pms")
+    r_pms_note = st.text_input("PMS gentle reminder", value=rem_data.get("pms_note", "PMS window: magnesium rich foods & gentle care."), key="diag_r_note_pms")
+    st.markdown("---")
+    
+    # 5. Daily Check-in
+    r_daily_on = st.toggle("📝 Daily Cycle Check-in", value=rem_data.get("daily_log", True), key="diag_r_tog_daily")
+    r_daily_time = st.selectbox("Preferred daily reminder time", ["08:00 AM", "12:00 PM", "06:00 PM", "08:00 PM", "10:00 PM"], index=3, key="diag_r_time_daily")
+    
+    st.markdown("<div style='height: 8px;'></div>", unsafe_allow_html=True)
+    c1, c2 = st.columns([2, 1])
+    with c1:
+        if st.button("💾 Save Reminders", type="primary", use_container_width=True, key="diag_btn_save_rem"):
+            new_rems = {
+                "period_approaching": r_period_on,
+                "period_days_before": r_period_days,
+                "period_note": r_period_note.strip(),
+                "fertile_window": r_fertile_on,
+                "fertile_note": r_fertile_note.strip(),
+                "ovulation_peak": r_ov_on,
+                "ovulation_note": r_ov_note.strip(),
+                "pms_care": r_pms_on,
+                "pms_note": r_pms_note.strip(),
+                "daily_log": r_daily_on,
+                "daily_time": r_daily_time
+            }
+            st.session_state["app_reminders"] = new_rems
+            db.save_user_app_settings(uid, st.session_state.get("app_bg_theme", "Blush Rose"), st.session_state.get("app_language", "English"), new_rems)
+            st.session_state["show_reminders_dialog"] = False
+            st.success("Reminders saved successfully!")
+            st.rerun()
+    with c2:
+        if st.button("Close", key="diag_btn_close_rem", use_container_width=True):
+            st.session_state["show_reminders_dialog"] = False
+            st.rerun()
+
 def render_notification_popover(phase_val: str, days_to_next: int, next_period_dt: date):
     """Renders cycle stage notifications & period reminders next to the diet icon."""
     reminders = st.session_state.get("app_reminders", {})
@@ -2471,7 +2756,7 @@ def render_notification_popover(phase_val: str, days_to_next: int, next_period_d
             
         st.markdown("<div style='margin-top: 10px;'></div>", unsafe_allow_html=True)
         if st.button("⚙️ Manage Reminders in Setting", key="btn_notif_goto_settings", use_container_width=True):
-            st.session_state["acc_window_view"] = "settings"
+            st.session_state["show_reminders_dialog"] = True
             st.rerun()
 
 def render_account_window(health_factors_list: list = None):
@@ -2510,11 +2795,17 @@ def render_account_window(health_factors_list: list = None):
                 """, unsafe_allow_html=True)
             
             # On left / vertical stack
-            # Button 1: Pin
-            pin_btn_label = "🔒 PIN Security" if has_pin else "🔒 Create PIN"
-            if st.button(pin_btn_label, key="btn_menu_pin", use_container_width=True):
-                st.session_state["acc_window_view"] = "pin"
-                st.rerun()
+            # Button 1: Pin or Create Account for Demo Guest
+            is_demo = (username.strip().lower() == "demo guest")
+            if is_demo:
+                if st.button("✨ Create Your Account", key="btn_menu_create_acc", type="primary", use_container_width=True):
+                    st.session_state["acc_window_view"] = "create_account"
+                    st.rerun()
+            else:
+                pin_btn_label = "🔒 PIN Security" if has_pin else "🔒 Create PIN"
+                if st.button(pin_btn_label, key="btn_menu_pin", use_container_width=True):
+                    st.session_state["acc_window_view"] = "pin"
+                    st.rerun()
                 
             st.markdown("<div style='height: 4px;'></div>", unsafe_allow_html=True)
             # Button 2: Setting
@@ -2781,6 +3072,61 @@ def render_account_window(health_factors_list: list = None):
                     st.success("✅ Reminders saved successfully!")
                     st.rerun()
 
+        # -------------------------------------------------------------
+        # VIEW 4: Create Account (for Demo Guest)
+        # -------------------------------------------------------------
+        elif acc_view == "create_account":
+            hdr_c1, hdr_c2 = st.columns([1.2, 3])
+            with hdr_c1:
+                if st.button("◀ Back", key="btn_create_acc_back", use_container_width=True):
+                    st.session_state["acc_window_view"] = "main"
+                    st.rerun()
+            with hdr_c2:
+                st.markdown("<div style='text-align: right; font-weight: 700; font-size: 1.05rem; color: #1e293b;'>✨ Create Account</div>", unsafe_allow_html=True)
+            st.markdown("---")
+            
+            st.markdown("<div style='background: #f0fdf4; border: 1px solid #bbf7d0; border-radius: 6px; padding: 6px 10px; font-size: 0.80rem; color: #166534; margin-bottom: 10px;'>🌟 Save your journey and create your private cycle profile:</div>", unsafe_allow_html=True)
+            
+            new_u_name = st.text_input("Username / Name *", placeholder="Enter your name (mandatory)", key="acc_cre_uname")
+            new_u_pin = st.text_input("4-Digit Security PIN *", type="password", placeholder="Set 4-digit PIN (mandatory, e.g. 0192)", key="acc_cre_upin")
+            new_u_pin_conf = st.text_input("Confirm PIN *", type="password", placeholder="Re-enter 4-digit PIN", key="acc_cre_upin_conf")
+            new_u_email = st.text_input("Email ID (Optional)", placeholder="yourname@gmail.com", key="acc_cre_uemail", help="Optional: Used for syncing your period stages with Google/Apple calendar.")
+            st.caption("*(Email is optional — required in case you want to sync with your personal calendar)*")
+            
+            st.markdown("<div style='margin-top: 8px;'></div>", unsafe_allow_html=True)
+            if st.button("✨ Create Account & Start Journal", key="btn_do_cre_account_sub", type="primary", use_container_width=True):
+                c_name = new_u_name.strip()
+                c_pin = new_u_pin.strip()
+                c_conf = new_u_pin_conf.strip()
+                c_email = new_u_email.strip()
+                
+                if not c_name:
+                    st.error("Username is mandatory. Please enter your name.")
+                elif not c_pin:
+                    st.error("PIN is mandatory. Please enter a 4-digit security PIN.")
+                elif c_pin != c_conf:
+                    st.error("PINs do not match. Please verify your PIN.")
+                else:
+                    reg_ok, reg_msg, reg_obj = db.register_user(c_name, c_pin, default_cycle=28, default_period=5, email=c_email)
+                    if reg_ok and reg_obj:
+                        st.session_state["authenticated_user"] = reg_obj["username"]
+                        st.session_state["selected_username"] = reg_obj["username"]
+                        st.session_state[f"auth_unlocked_{reg_obj['id']}"] = True
+                        st.session_state["logged_out_explicitly"] = False
+                        st.session_state["acc_window_view"] = "main"
+                        if c_email:
+                            st.session_state["cal_sync_email_val"] = c_email
+                        st.success(f"Account '{reg_obj['username']}' created successfully!")
+                        st.rerun()
+                    else:
+                        st.error(reg_msg)
+
+# ---------------------------------------------------------
+# Check if Reminders dialog was triggered from Notifications
+# ---------------------------------------------------------
+if st.session_state.get("show_reminders_dialog", False):
+    show_manage_reminders_dialog(user_id)
+
 # ---------------------------------------------------------
 # Main App Header & Relax Branding
 # ---------------------------------------------------------
@@ -2790,7 +3136,7 @@ with top_bar_col1:
     cur_lang_code = st.session_state.get("app_language", "English")
     t_app = TRANSLATIONS.get(cur_lang_code, TRANSLATIONS["English"])
     st.markdown(f"""
-    <div style="margin-top: 2px; margin-bottom: 4px; display: flex; align-items: center; height: 100%;">
+    <div style="margin-top: 0px; margin-bottom: 0px; display: flex; align-items: center; height: 100%;">
         <span style="font-size: 1.25rem; font-weight: 700; color: #1e293b;">🌸 {t_app.get('app_title', 'Relax')}</span>
     </div>
     """, unsafe_allow_html=True)
@@ -2821,37 +3167,11 @@ st.markdown(f"""
 """, unsafe_allow_html=True)
 
 # ---------------------------------------------------------
-# Fixed Bottom Mobile Navigation Bar (Non-movable, Icons only, Text on hover)
+# ---------------------------------------------------------
+# Set Default Navigation State
 # ---------------------------------------------------------
 if "active_nav" not in st.session_state:
     st.session_state["active_nav"] = "📅"
-
-with st.container(key="bottom_nav_bar"):
-    nav_c1, nav_c2, nav_c3, nav_c4 = st.columns(4)
-
-    with nav_c1:
-        is_sel = st.session_state["active_nav"] in ["📅", "📅 Calendar"]
-        if st.button("📅", key="nav_btn_cal", use_container_width=True, help="Calendar", type="primary" if is_sel else "secondary"):
-            st.session_state["active_nav"] = "📅"
-            st.rerun()
-
-    with nav_c2:
-        is_sel = st.session_state["active_nav"] in ["💬", "💬 Chat"]
-        if st.button("💬", key="nav_btn_chat", use_container_width=True, help="Chat Assistant", type="primary" if is_sel else "secondary"):
-            st.session_state["active_nav"] = "💬"
-            st.rerun()
-
-    with nav_c3:
-        is_sel = st.session_state["active_nav"] in ["💡", "💡 Insights"]
-        if st.button("💡", key="nav_btn_ins", use_container_width=True, help="Insights & Trends", type="primary" if is_sel else "secondary"):
-            st.session_state["active_nav"] = "💡"
-            st.rerun()
-
-    with nav_c4:
-        is_sel = st.session_state["active_nav"] in ["📝", "📝 Symptoms Update"]
-        if st.button("📝", key="nav_btn_sym", use_container_width=True, help="Symptoms Update", type="primary" if is_sel else "secondary"):
-            st.session_state["active_nav"] = "📝"
-            st.rerun()
 
 # =========================================================
 # VIEW 1: 📅 Calendar (Flo-Style 3-Month View & Export)
@@ -3676,3 +3996,33 @@ st.warning(
     "⚕️ **Health Disclaimer:** Ovulation and cycle timing can fluctuate due to stress, illness, sleep, and lifestyle. "
     "Relax provides educational estimates based on calendar algorithms and should not be used as a medical diagnosis or contraceptive method."
 )
+
+# ---------------------------------------------------------
+# Fixed Bottom Mobile Navigation Bar (Non-movable, Icons only, Text on hover)
+# ---------------------------------------------------------
+with st.container(key="bottom_nav_bar"):
+    nav_c1, nav_c2, nav_c3, nav_c4 = st.columns(4)
+
+    with nav_c1:
+        is_sel = st.session_state.get("active_nav") in ["📅", "📅 Calendar"]
+        if st.button("📅", key="nav_btn_cal", use_container_width=True, help="Calendar", type="primary" if is_sel else "secondary"):
+            st.session_state["active_nav"] = "📅"
+            st.rerun()
+
+    with nav_c2:
+        is_sel = st.session_state.get("active_nav") in ["💬", "💬 Chat"]
+        if st.button("💬", key="nav_btn_chat", use_container_width=True, help="Chat Assistant", type="primary" if is_sel else "secondary"):
+            st.session_state["active_nav"] = "💬"
+            st.rerun()
+
+    with nav_c3:
+        is_sel = st.session_state.get("active_nav") in ["💡", "💡 Insights"]
+        if st.button("💡", key="nav_btn_ins", use_container_width=True, help="Insights & Trends", type="primary" if is_sel else "secondary"):
+            st.session_state["active_nav"] = "💡"
+            st.rerun()
+
+    with nav_c4:
+        is_sel = st.session_state.get("active_nav") in ["📝", "📝 Symptoms Update"]
+        if st.button("📝", key="nav_btn_sym", use_container_width=True, help="Symptoms Update", type="primary" if is_sel else "secondary"):
+            st.session_state["active_nav"] = "📝"
+            st.rerun()
