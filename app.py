@@ -25,27 +25,167 @@ st.set_page_config(
 db.init_db()
 
 # ---------------------------------------------------------
+# Themes & Multilingual Localization Dictionaries
+# ---------------------------------------------------------
+THEMES = {
+    "Blush Rose": {
+        "name": "Blush Rose 🌸",
+        "bg_gradient": "linear-gradient(180deg, #fff5f7 0%, #ffffff 100%)",
+        "card_bg": "#ffffff",
+        "accent": "#e11d48"
+    },
+    "Calm Mint": {
+        "name": "Calm Mint 🌿",
+        "bg_gradient": "linear-gradient(180deg, #f0fdf4 0%, #ffffff 100%)",
+        "card_bg": "#ffffff",
+        "accent": "#16a34a"
+    },
+    "Lavender Mist": {
+        "name": "Lavender Mist 💜",
+        "bg_gradient": "linear-gradient(180deg, #faf5ff 0%, #ffffff 100%)",
+        "card_bg": "#ffffff",
+        "accent": "#9333ea"
+    },
+    "Warm Peach": {
+        "name": "Warm Peach ☀️",
+        "bg_gradient": "linear-gradient(180deg, #fff7ed 0%, #ffffff 100%)",
+        "card_bg": "#ffffff",
+        "accent": "#ea580c"
+    },
+    "Ocean Breeze": {
+        "name": "Ocean Breeze 🌊",
+        "bg_gradient": "linear-gradient(180deg, #f0f9ff 0%, #ffffff 100%)",
+        "card_bg": "#ffffff",
+        "accent": "#0284c7"
+    },
+    "Midnight Velvet": {
+        "name": "Midnight Velvet 🌙",
+        "bg_gradient": "linear-gradient(180deg, #0f172a 0%, #1e293b 100%)",
+        "card_bg": "#1e293b",
+        "accent": "#2dd4bf"
+    }
+}
+
+TRANSLATIONS = {
+    "English": {
+        "app_title": "Relax",
+        "tagline": "Private & Cycle-Synced Health Companion",
+        "diet": "Diet",
+        "notifications": "Notifications",
+        "account": "Account",
+        "pin_security": "PIN Security",
+        "setting": "Setting",
+        "logout": "Logout",
+        "current_phase": "Current Phase",
+        "next_period": "Next Period",
+        "predictability": "Predictability",
+        "today": "Today"
+    },
+    "Español": {
+        "app_title": "Relax",
+        "tagline": "Compañero privado de salud sincronizado con tu ciclo",
+        "diet": "Dieta",
+        "notifications": "Notificaciones",
+        "account": "Cuenta",
+        "pin_security": "Seguridad PIN",
+        "setting": "Ajustes",
+        "logout": "Cerrar sesión",
+        "current_phase": "Fase actual",
+        "next_period": "Próximo período",
+        "predictability": "Previsibilidad",
+        "today": "Hoy"
+    },
+    "Français": {
+        "app_title": "Relax",
+        "tagline": "Compagnon privé de santé synchronisé avec votre cycle",
+        "diet": "Régime",
+        "notifications": "Notifications",
+        "account": "Compte",
+        "pin_security": "Sécurité PIN",
+        "setting": "Paramètres",
+        "logout": "Déconnexion",
+        "current_phase": "Phase actuelle",
+        "next_period": "Prochaines règles",
+        "predictability": "Prévisibilité",
+        "today": "Aujourd'hui"
+    },
+    "Deutsch": {
+        "app_title": "Relax",
+        "tagline": "Ihr privater zyklussynchroner Gesundheitsbegleiter",
+        "diet": "Ernährung",
+        "notifications": "Benachrichtigungen",
+        "account": "Konto",
+        "pin_security": "PIN-Sicherheit",
+        "setting": "Einstellungen",
+        "logout": "Abmelden",
+        "current_phase": "Aktuelle Phase",
+        "next_period": "Nächste Periode",
+        "predictability": "Vorhersagbarkeit",
+        "today": "Heute"
+    },
+    "हिन्दी": {
+        "app_title": "रिलैक्स",
+        "tagline": "आपका निजी और चक्र-संबद्ध स्वास्थ्य साथी",
+        "diet": "आहार",
+        "notifications": "सूचनाएं",
+        "account": "खाता",
+        "pin_security": "पिन सुरक्षा",
+        "setting": "सेटिंग",
+        "logout": "लॉग आउट",
+        "current_phase": "वर्तमान चरण",
+        "next_period": "अगला पीरियड",
+        "predictability": "सटीकता",
+        "today": "आज"
+    },
+    "తెలుగు": {
+        "app_title": "రిలాక్స్",
+        "tagline": "మీ వ్యక్తిగత మరియు చక్ర-సమకాలీకరించిన ఆరోగ్య సహచరుడు",
+        "diet": "ఆహారం",
+        "notifications": "నోటిఫికేషన్లు",
+        "account": "ఖాతా",
+        "pin_security": "పిన్ భద్రత",
+        "setting": "సెట్టింగ్స్",
+        "logout": "లాగ్ అవుట్",
+        "current_phase": "ప్రస్తుత దశ",
+        "next_period": "తదుపరి పీరియడ్",
+        "predictability": "ఖచ్చితత్వం",
+        "today": "ఈరోజు"
+    }
+}
+
+# ---------------------------------------------------------
 # Custom Styling: Relax Theme & Hide Streamlit Default UI
 # ---------------------------------------------------------
 st.markdown("""
 <style>
-/* Hide default Streamlit menu and footer for clean app feel */
-#MainMenu {visibility: hidden;}
-footer {visibility: hidden;}
-header[data-testid="stHeader"] {
-    background: transparent !important;
-    z-index: 1 !important;
+/* Completely hide default Streamlit developer header toolbar (Share, Star, Edit in VS Code, GitHub) */
+header[data-testid="stHeader"],
+[data-testid="stToolbar"],
+.stAppToolbar,
+#MainMenu,
+footer,
+[data-testid="stDecoration"],
+[data-testid="stStatusWidget"] {
+    display: none !important;
+    visibility: hidden !important;
+    height: 0px !important;
+    width: 0px !important;
+    overflow: hidden !important;
+    margin: 0 !important;
+    padding: 0 !important;
+    opacity: 0 !important;
+    pointer-events: none !important;
 }
 
-/* Safe page padding: ensures top header data and cards are fully visible below mobile notch & Streamlit top bar */
+/* Clean top padding since developer toolbar is completely removed */
 .block-container {
-    padding-top: 4.5rem !important;
+    padding-top: 1.2rem !important;
     padding-bottom: 95px !important;
 }
 
 @media (max-width: 768px) {
     .block-container {
-        padding-top: 5.2rem !important; /* safe clearance under phone notch and browser top bar */
+        padding-top: 1.0rem !important;
         padding-left: 0.9rem !important;
         padding-right: 0.9rem !important;
     }
@@ -60,28 +200,28 @@ header[data-testid="stHeader"] {
     font-weight: 600 !important;
 }
 
-/* Relax Hero & Status Badges Row - Clean Neutral, No Green Header Card */
+/* Relax Hero & Status Badges Row - Clean Neutral, Small Compact Badges */
 .hero-card {
     background: transparent !important;
     border: none !important;
-    padding: 2px 0px 6px 0px !important;
-    margin-top: 4px !important;
-    margin-bottom: 8px !important;
+    padding: 1px 0px 4px 0px !important;
+    margin-top: 1px !important;
+    margin-bottom: 4px !important;
     box-shadow: none !important;
-    font-size: 8pt !important;
+    font-size: 7pt !important;
 }
 .hero-title {
-    font-size: 8.5pt !important;
+    font-size: 7.5pt !important;
     font-weight: 700 !important;
     color: #1e293b !important;
-    margin-bottom: 3px !important;
-    line-height: 1.3 !important;
+    margin-bottom: 2px !important;
+    line-height: 1.2 !important;
 }
 .hero-subtitle {
-    font-size: 8pt !important;
+    font-size: 7pt !important;
     color: #475569 !important;
-    margin-bottom: 6px !important;
-    line-height: 1.3 !important;
+    margin-bottom: 3px !important;
+    line-height: 1.2 !important;
 }
 .hero-badges {
     display: flex;
@@ -90,10 +230,11 @@ header[data-testid="stHeader"] {
 }
 .hero-badge {
     display: inline-block;
-    padding: 1px 6px;
-    border-radius: 6px;
-    font-size: 7.5pt !important;
-    font-weight: 600;
+    padding: 1px 5px !important;
+    border-radius: 4px !important;
+    font-size: 6.8pt !important;
+    font-weight: 600 !important;
+    line-height: 1.2 !important;
 }
 .badge-phase { background: #fce7f3; color: #be185d; border: 1px solid #fbcfe8; }
 .badge-countdown { background: #ede9fe; color: #6d28d9; border: 1px solid #ddd6fe; }
@@ -155,14 +296,20 @@ header[data-testid="stHeader"] {
     box-shadow: none !important;
     color: #0f766e !important;
 }
-[data-testid="stPopover"] button span[data-testid="stIconMaterial"],
-[data-testid="stPopover"] button span.material-symbols-rounded,
-[data-testid="stPopover"] button .material-symbols-rounded,
-[data-testid="stPopover"] button svg {
-    color: rgba(15, 118, 110, 0.40) !important; /* translucent / transparent man icon color */
-    fill: rgba(15, 118, 110, 0.40) !important;
-    opacity: 0.60 !important;
+.st-key-top_actions_bar [data-testid="stPopover"] button svg,
+.st-key-top_actions_bar [data-testid="stPopover"] button [data-testid="stIconChevronDown"] {
+    display: none !important;
+    visibility: hidden !important;
+    width: 0 !important;
+    height: 0 !important;
+}
+.st-key-top_actions_bar [data-testid="stPopover"] button {
     font-size: 1.25rem !important;
+    padding: 2px 6px !important;
+    min-height: 28px !important;
+    line-height: 1 !important;
+    background: transparent !important;
+    border: none !important;
 }
 
 
@@ -1425,78 +1572,215 @@ def generate_ics(
     ics_lines.append("END:VCALENDAR")
     return "\r\n".join(ics_lines)
 
+def is_local_host_device() -> bool:
+    """Determines whether the client connection is from this host laptop (127.0.0.1 or localhost)."""
+    try:
+        if st.query_params.get("admin") == "1":
+            return True
+        ip = getattr(st.context, "ip_address", None)
+        if ip and ip in ("127.0.0.1", "::1", "localhost"):
+            return True
+        h = getattr(st.context, "headers", None)
+        if h:
+            host = (h.get("host") or "").lower()
+            if host.startswith("localhost") or host.startswith("127.0.0.1"):
+                return True
+    except Exception:
+        pass
+    return False
+
 # ---------------------------------------------------------
-# User Account & Database Profile Setup
+# User Account & Multi-User Authentication Gate
 # ---------------------------------------------------------
 all_users = db.get_all_users()
 user_names = [u["username"] for u in all_users]
 db_stats = db.get_database_stats()
+is_host = is_local_host_device()
 
-# Retrieve active user from session state or default to Krishna
-if "selected_username" not in st.session_state:
-    st.session_state["selected_username"] = "Krishna" if "Krishna" in user_names else (user_names[0] if user_names else "Krishna")
+# On host laptop, if Krishna has no PIN set and user hasn't explicitly logged out, auto-login host owner
+krishna_user = next((u for u in all_users if u["username"] == "Krishna"), None)
+krishna_has_pin = bool(krishna_user.get("pin_hash")) if krishna_user else False
 
-matched_users = [u for u in all_users if u["username"] == st.session_state["selected_username"]]
+if "authenticated_user" not in st.session_state:
+    if is_host and "Krishna" in user_names and not krishna_has_pin and not st.session_state.get("logged_out_explicitly", False):
+        st.session_state["authenticated_user"] = "Krishna"
+        st.session_state["selected_username"] = "Krishna"
+
+# If session is still unauthenticated (e.g. new user, external device, or after logout), show Login Gate
+if not st.session_state.get("authenticated_user"):
+    st.markdown("<div style='height: 15px;'></div>", unsafe_allow_html=True)
+    auth_c1, auth_c2, auth_c3 = st.columns([1, 2.2, 1])
+    with auth_c2:
+        st.markdown("""
+        <div style="background: #ffffff; border: 1px solid #e2e8f0; border-radius: 16px; padding: 22px 24px; box-shadow: 0 4px 18px rgba(0,0,0,0.05); text-align: center; margin-bottom: 18px;">
+            <div style="font-size: 2.2rem; margin-bottom: 2px;">🌸</div>
+            <div style="font-size: 1.35rem; font-weight: 700; color: #1e293b;">Welcome to Relax</div>
+            <div style="font-size: 0.85rem; color: #64748b; margin-top: 4px;">Private & Cycle-Synced Health Companion</div>
+        </div>
+        """, unsafe_allow_html=True)
+
+        tab_login, tab_signup, tab_demo = st.tabs(["🔑 Sign In", "✨ New User? Create Account", "🌟 Demo Guest Preview"])
+
+        with tab_login:
+            st.caption("Sign in to your private cycle & health records:")
+            default_uname = "Krishna" if (is_host and "Krishna" in user_names) else ""
+            if is_host and "Krishna" in user_names:
+                st.markdown("""
+                <div style="background: #f0fdf4; border: 1px solid #bbf7d0; border-radius: 8px; padding: 6px 12px; font-size: 0.80rem; color: #166534; margin-bottom: 10px;">
+                    💻 <b>Host Laptop Detected:</b> Running locally on your computer.
+                </div>
+                """, unsafe_allow_html=True)
+
+            login_username = st.text_input("Username / Name", value=default_uname, placeholder="Enter your name", key="auth_input_user")
+            
+            target_user = None
+            if login_username.strip():
+                m_users = [u for u in all_users if u["username"].lower() == login_username.strip().lower()]
+                if m_users:
+                    target_user = m_users[0]
+            
+            user_has_pin = bool(target_user.get("pin_hash")) if target_user else False
+            entered_pin = ""
+            if user_has_pin:
+                entered_pin = st.text_input("Enter 4-Digit Security PIN", type="password", placeholder="Enter your PIN", key="auth_login_pin")
+            elif target_user:
+                st.caption("ℹ️ No PIN required for this account.")
+            
+            if st.button("🔓 Sign In to Relax", type="primary", use_container_width=True, key="btn_auth_signin"):
+                clean_name = login_username.strip()
+                if not clean_name:
+                    st.error("Please enter your name / username.")
+                elif not is_host and clean_name.lower() == "krishna" and not user_has_pin:
+                    st.error("🔒 The 'Krishna' profile is reserved for the host laptop owner. Please register your own name or explore as Demo Guest.")
+                else:
+                    success, msg, u_obj = db.verify_user_login(clean_name, entered_pin)
+                    if success and u_obj:
+                        st.session_state["authenticated_user"] = u_obj["username"]
+                        st.session_state["selected_username"] = u_obj["username"]
+                        st.session_state[f"auth_unlocked_{u_obj['id']}"] = True
+                        st.session_state["logged_out_explicitly"] = False
+                        st.rerun()
+                    else:
+                        st.error(msg)
+            
+            if target_user and user_has_pin:
+                sec_inf = db.get_user_security_info(target_user["id"])
+                rec_q = sec_inf.get("recovery_question")
+                if rec_q:
+                    with st.expander("❓ Forgot PIN?", expanded=False):
+                        st.caption(f"**Security Question:** {rec_q}")
+                        ans_in = st.text_input("Security Answer", type="password", key="auth_rec_ans")
+                        np1 = st.text_input("New PIN", type="password", key="auth_rec_np1")
+                        np2 = st.text_input("Confirm New PIN", type="password", key="auth_rec_np2")
+                        if st.button("🔑 Reset PIN & Sign In", key="btn_auth_rec_reset", use_container_width=True):
+                            if not np1 or np1 != np2:
+                                st.error("Please enter matching new PINs.")
+                            else:
+                                ok, rmsg = db.reset_user_pin_with_recovery(target_user["id"], ans_in.strip(), np1)
+                                if ok:
+                                    st.session_state["authenticated_user"] = target_user["username"]
+                                    st.session_state["selected_username"] = target_user["username"]
+                                    st.session_state[f"auth_unlocked_{target_user['id']}"] = True
+                                    st.session_state["logged_out_explicitly"] = False
+                                    st.success(rmsg)
+                                    st.rerun()
+                                else:
+                                    st.error(rmsg)
+
+        with tab_signup:
+            st.caption("Create your own private cycle profile:")
+            reg_name = st.text_input("Your Name / Nickname", placeholder="e.g. Sarah, Emily, Alex", key="reg_name_input")
+            c_r1, c_r2 = st.columns(2)
+            with c_r1:
+                reg_cycle = st.number_input("Typical Cycle Length (days)", min_value=21, max_value=45, value=28, key="reg_cycle_len")
+            with c_r2:
+                reg_period = st.number_input("Period Duration (days)", min_value=1, max_value=10, value=5, key="reg_period_len")
+            
+            reg_pin = st.text_input("Set 4-Digit Security PIN (optional)", type="password", placeholder="Leave blank if no PIN desired", key="reg_pin_input")
+            
+            if st.button("🌸 Create Account & Start Journal", type="primary", use_container_width=True, key="btn_reg_create"):
+                if not reg_name.strip():
+                    st.error("Please enter your name.")
+                elif not is_host and reg_name.strip().lower() == "krishna":
+                    st.error("Name 'Krishna' is reserved for the host. Please choose your own name.")
+                else:
+                    success, msg, new_u = db.register_user(reg_name.strip(), reg_pin.strip(), reg_cycle, reg_period)
+                    if success and new_u:
+                        st.session_state["authenticated_user"] = new_u["username"]
+                        st.session_state["selected_username"] = new_u["username"]
+                        st.session_state[f"auth_unlocked_{new_u['id']}"] = True
+                        st.session_state["logged_out_explicitly"] = False
+                        st.success(f"Welcome, {new_u['username']}!")
+                        st.rerun()
+                    else:
+                        st.error(msg)
+
+        with tab_demo:
+            st.markdown("""
+            <div style="background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 10px; padding: 12px; margin-bottom: 12px; font-size: 0.83rem; color: #475569;">
+                <b>👋 Preview for Interviewers & Guests:</b><br/>
+                Explore all interactive features of <b>Relax</b> (3-month calendar, AI cycle forecasting, symptom logger, and 4-phase nutrition guide) without needing to create an account.
+            </div>
+            """, unsafe_allow_html=True)
+            if st.button("👁️ Explore as Demo Guest", type="secondary", use_container_width=True, key="btn_guest_demo_launch"):
+                demo_u = db.get_or_create_user("Demo Guest", default_cycle=28, default_period=5)
+                demo_logs = db.get_user_cycle_logs(demo_u["id"])
+                if not demo_logs:
+                    db.add_cycle_log(demo_u["id"], date(date.today().year, date.today().month, 1), "Sample cycle")
+                    p_m = date.today().month - 1 or 12
+                    p_y = date.today().year if date.today().month > 1 else date.today().year - 1
+                    db.add_cycle_log(demo_u["id"], date(p_y, p_m, 3), "Previous sample cycle")
+                st.session_state["authenticated_user"] = "Demo Guest"
+                st.session_state["selected_username"] = "Demo Guest"
+                st.session_state[f"auth_unlocked_{demo_u['id']}"] = True
+                st.session_state["logged_out_explicitly"] = False
+                st.rerun()
+
+    st.stop()
+
+# Retrieve authenticated active user
+authenticated_name = st.session_state.get("authenticated_user", "Krishna")
+matched_users = [u for u in all_users if u["username"] == authenticated_name]
 if matched_users:
     current_user = matched_users[0]
 else:
-    current_user = all_users[0] if all_users else db.get_or_create_user("Krishna")
-    st.session_state["selected_username"] = current_user["username"]
+    current_user = db.get_or_create_user(authenticated_name)
 
 user_id = current_user["id"]
 username = current_user["username"]
-
-# Security check: If user account has a PIN set, require PIN unlock
 user_has_pin = bool(current_user.get("pin_hash"))
-auth_session_key = f"auth_unlocked_{user_id}"
 
-if user_has_pin and not st.session_state.get(auth_session_key, False):
-    st.markdown("<div style='height: 20px;'></div>", unsafe_allow_html=True)
-    lk_c1, lk_c2, lk_c3 = st.columns([1.3, 1.4, 1.3])
-    with lk_c2:
-        st.markdown(f"""
-        <div style="background: #ffffff; border: 1px solid #e2e8f0; border-radius: 14px; padding: 14px 16px; box-shadow: 0 2px 10px rgba(0,0,0,0.04); text-align: center;">
-            <div style="font-size: 1.4rem; margin-bottom: 2px;">🌸</div>
-            <div style="font-size: 1.05rem; font-weight: 700; color: #1e293b;">Relax &bull; Private Health Log</div>
-            <div style="font-size: 0.80rem; color: #64748b; margin-top: 2px;">Profile <b>{username}</b> is protected by a PIN.</div>
-        </div>
-        """, unsafe_allow_html=True)
-        
-        st.markdown("<div style='margin-top: 10px;'></div>", unsafe_allow_html=True)
-        entered_pin = st.text_input("Enter PIN to unlock", type="password", key=f"pin_unlock_input_{user_id}", label_visibility="collapsed", placeholder="Enter PIN to unlock")
-        if st.button("🔓 Unlock Account", type="primary", use_container_width=True, key=f"btn_unlock_{user_id}"):
-            success, msg, _ = db.verify_user_login(username, entered_pin)
-            if success:
-                st.session_state[auth_session_key] = True
-                st.rerun()
-            else:
-                st.error(msg)
-                
-        # Password / PIN Recovery when user forgets on the lock screen
-        sec_info = db.get_user_security_info(user_id)
-        saved_q = sec_info.get("recovery_question") or "What is your favorite comfort food?"
-        with st.expander("❓ Forgot PIN?", expanded=False):
-            st.caption(f"**Security Question:** {saved_q}")
-            rec_ans = st.text_input("Security Answer", type="password", key=f"lk_rec_ans_{user_id}", placeholder="Answer to question")
-            lr1, lr2 = st.columns(2)
-            with lr1:
-                new_p1 = st.text_input("New PIN", type="password", key=f"lk_new_p1_{user_id}", placeholder="New PIN")
-            with lr2:
-                new_p2 = st.text_input("Confirm PIN", type="password", key=f"lk_new_p2_{user_id}", placeholder="Confirm PIN")
-            if st.button("🔑 Reset PIN & Unlock", key=f"btn_lk_reset_{user_id}", use_container_width=True):
-                if not new_p1 or not new_p2:
-                    st.error("Please enter and confirm your new PIN.")
-                elif new_p1 != new_p2:
-                    st.error("New PINs do not match.")
-                else:
-                    ok, r_msg = db.reset_user_pin_with_recovery(user_id, rec_ans.strip(), new_p1)
-                    if ok:
-                        st.session_state[auth_session_key] = True
-                        st.success(f"✅ {r_msg}")
-                        st.rerun()
-                    else:
-                        st.error(r_msg)
-    st.stop()
+# Load user settings: theme, language, reminders
+u_settings = db.get_user_app_settings(user_id)
+if "app_bg_theme" not in st.session_state:
+    st.session_state["app_bg_theme"] = u_settings.get("theme_color", "Blush Rose")
+if "app_language" not in st.session_state:
+    st.session_state["app_language"] = u_settings.get("language", "English")
+if "app_reminders" not in st.session_state:
+    st.session_state["app_reminders"] = u_settings.get("reminders") or {
+        "period_approaching": True,
+        "period_days_before": 2,
+        "period_note": "Hydrate well, herbal tea & rest.",
+        "fertile_window": True,
+        "fertile_note": "Entering high fertility stage.",
+        "ovulation_peak": True,
+        "ovulation_note": "Ovulation peak day - peak vitality!",
+        "pms_care": True,
+        "pms_note": "PMS window: magnesium rich foods & gentle care.",
+        "daily_log": True,
+        "daily_time": "20:00"
+    }
+
+cur_theme_name = st.session_state.get("app_bg_theme", "Blush Rose")
+cur_theme = THEMES.get(cur_theme_name, THEMES["Blush Rose"])
+st.markdown(f"""
+<style>
+.stApp {{
+    background: {cur_theme['bg_gradient']} !important;
+}}
+</style>
+""", unsafe_allow_html=True)
+
 
 # Fetch historical cycle dates for this user
 user_logs = db.get_user_cycle_logs(user_id)
@@ -1738,142 +2022,386 @@ def render_diet_notif_popover(phase_val: str, tooltip_hint: str = "Diet", contai
             st.markdown("<div style='margin-top:6px;'></div>", unsafe_allow_html=True)
             st.caption("✨ Full 4-phase nutrition guide available in 💡 Insights tab.")
 
+def render_notification_popover(phase_val: str, days_to_next: int, next_period_dt: date):
+    """Renders cycle stage notifications & period reminders next to the diet icon."""
+    reminders = st.session_state.get("app_reminders", {})
+    cur_lang = st.session_state.get("app_language", "English")
+    t = TRANSLATIONS.get(cur_lang, TRANSLATIONS["English"])
+    
+    with st.popover("🔔", help=t.get("notifications", "Notifications")):
+        st.markdown(f"<div style='font-size:1.05rem; font-weight:700; color:#1e293b; margin-bottom:4px;'>🔔 {t.get('notifications', 'Reminders & Notifications')}</div>", unsafe_allow_html=True)
+        
+        # 1. Upcoming Period Status
+        p_status_txt = f"In {days_to_next} days" if days_to_next > 0 else "Due today" if days_to_next == 0 else "Overdue"
+        st.markdown(f"""
+        <div style="background: #fff1f2; border-left: 3px solid #f43f5e; padding: 7px 10px; border-radius: 6px; margin-bottom: 8px;">
+            <div style="font-size: 0.85rem; font-weight: 700; color: #9f1239;">🩸 Next Period: {p_status_txt}</div>
+            <div style="font-size: 0.78rem; color: #881337;">Estimated Date: <b>{next_period_dt.strftime('%d %B %Y')}</b></div>
+        </div>
+        """, unsafe_allow_html=True)
+        
+        # 2. Current Cycle Stage
+        st.markdown(f"""
+        <div style="background: #f0fdf4; border-left: 3px solid #22c55e; padding: 7px 10px; border-radius: 6px; margin-bottom: 8px;">
+            <div style="font-size: 0.85rem; font-weight: 700; color: #166534;">🌸 Active Cycle Stage: {phase_val}</div>
+            <div style="font-size: 0.78rem; color: #14532d;">Hormonal & biological rhythm is synced to this phase.</div>
+        </div>
+        """, unsafe_allow_html=True)
+        
+        # 3. Active Configured Reminders
+        st.markdown("<div style='font-size: 0.83rem; font-weight: 600; color: #334155; margin-bottom: 4px;'>⏰ Active Stage Alerts:</div>", unsafe_allow_html=True)
+        
+        has_any_alert = False
+        if reminders.get("period_approaching", True):
+            has_any_alert = True
+            days_bef = reminders.get("period_days_before", 2)
+            st.markdown(f"<div style='font-size:0.78rem; margin-bottom:3px;'>• <b>Period Alert:</b> {days_bef} days before ({reminders.get('period_note', 'Hydrate well')})</div>", unsafe_allow_html=True)
+            
+        if reminders.get("fertile_window", True):
+            has_any_alert = True
+            st.markdown(f"<div style='font-size:0.78rem; margin-bottom:3px;'>• <b>Fertile Window:</b> {reminders.get('fertile_note', 'Fertility window starts')}</div>", unsafe_allow_html=True)
+            
+        if reminders.get("ovulation_peak", True):
+            has_any_alert = True
+            st.markdown(f"<div style='font-size:0.78rem; margin-bottom:3px;'>• <b>Ovulation Peak:</b> {reminders.get('ovulation_note', 'Ovulation peak energy')}</div>", unsafe_allow_html=True)
+            
+        if reminders.get("pms_care", True):
+            has_any_alert = True
+            st.markdown(f"<div style='font-size:0.78rem; margin-bottom:3px;'>• <b>PMS Gentle Care:</b> {reminders.get('pms_note', 'Magnesium & gentle rest')}</div>", unsafe_allow_html=True)
+            
+        if reminders.get("daily_log", True):
+            has_any_alert = True
+            st.markdown(f"<div style='font-size:0.78rem; margin-bottom:3px;'>• <b>Daily Check-in:</b> At {reminders.get('daily_time', '20:00')}</div>", unsafe_allow_html=True)
+            
+        if not has_any_alert:
+            st.caption("No custom reminders currently enabled.")
+            
+        st.markdown("<div style='margin-top: 10px;'></div>", unsafe_allow_html=True)
+        if st.button("⚙️ Manage Reminders in Setting", key="btn_notif_goto_settings", use_container_width=True):
+            st.session_state["acc_window_view"] = "settings"
+            st.rerun()
+
+def render_account_window():
+    """Renders the sleek Account popover window with PIN Security, Settings, and centered Logout."""
+    sec_info = db.get_user_security_info(user_id)
+    has_pin = sec_info["has_pin"]
+    rec_type = sec_info.get("recovery_type", "question")
+    saved_phone = sec_info.get("recovery_phone", "")
+    saved_q = sec_info.get("recovery_question", "") or "What is your favorite comfort food?"
+    
+    cur_lang = st.session_state.get("app_language", "English")
+    t = TRANSLATIONS.get(cur_lang, TRANSLATIONS["English"])
+    
+    with st.popover("👤", help=t.get("account", "Account")):
+        acc_view = st.session_state.get("acc_window_view", "main")
+        
+        # -------------------------------------------------------------
+        # VIEW 1: Main Account Menu
+        # -------------------------------------------------------------
+        if acc_view == "main":
+            # Top right: user name
+            st.markdown(f"""
+            <div style="display: flex; justify-content: flex-end; align-items: center; margin-bottom: 12px;">
+                <span style="font-size: 1.15rem; font-weight: 700; color: #1e293b;">👤 {username}</span>
+            </div>
+            """, unsafe_allow_html=True)
+            
+            # On left / vertical stack
+            # Button 1: Pin
+            pin_btn_label = "🔒 PIN Security" if has_pin else "🔒 Create PIN"
+            if st.button(pin_btn_label, key="btn_menu_pin", use_container_width=True):
+                st.session_state["acc_window_view"] = "pin"
+                st.rerun()
+                
+            st.markdown("<div style='height: 4px;'></div>", unsafe_allow_html=True)
+            # Button 2: Setting
+            if st.button(f"⚙️ {t.get('setting', 'Setting')}", key="btn_menu_setting", use_container_width=True):
+                st.session_state["acc_window_view"] = "settings"
+                st.rerun()
+                
+            st.markdown("<div style='height: 14px;'></div>", unsafe_allow_html=True)
+            # Button 3: Logout in the middle of the window
+            lo_c1, lo_c2, lo_c3 = st.columns([1, 2, 1])
+            with lo_c2:
+                if st.button(f"🚪 {t.get('logout', 'Logout')}", key="acc_btn_logout_center", use_container_width=True):
+                    st.session_state.pop("authenticated_user", None)
+                    st.session_state.pop("selected_username", None)
+                    st.session_state[f"auth_unlocked_{user_id}"] = False
+                    st.session_state["logged_out_explicitly"] = True
+                    st.session_state["acc_window_view"] = "main"
+                    st.rerun()
+                    
+        # -------------------------------------------------------------
+        # VIEW 2: PIN Window
+        # -------------------------------------------------------------
+        elif acc_view == "pin":
+            hdr_c1, hdr_c2 = st.columns([1.2, 3])
+            with hdr_c1:
+                if st.button("◀ Back", key="btn_pin_back", use_container_width=True):
+                    st.session_state["acc_window_view"] = "main"
+                    st.rerun()
+            with hdr_c2:
+                st.markdown("<div style='text-align: right; font-weight: 700; font-size: 1.05rem; color: #1e293b;'>🔒 PIN Security</div>", unsafe_allow_html=True)
+            st.markdown("---")
+            
+            # If pin is not yet set -> show ONLY the option to create new Pin button
+            if not has_pin:
+                st.markdown("<div style='background: #fffbeb; border: 1px solid #fde68a; border-radius: 6px; padding: 6px 10px; font-size: 0.80rem; color: #92400e; margin-bottom: 10px;'>ℹ️ No PIN currently set. Create a PIN to protect your cycle records:</div>", unsafe_allow_html=True)
+                
+                p_new1 = st.text_input("Create New PIN", type="password", key="pin_cre_new1", placeholder="Enter 4-digit PIN")
+                p_new2 = st.text_input("Confirm PIN", type="password", key="pin_cre_new2", placeholder="Confirm 4-digit PIN")
+                
+                rec_opt = st.radio("Recovery Option", ["Recovery Question", "Recovery Phone Number"], horizontal=True, key="pin_rec_opt_radio")
+                
+                sel_q_val = ""
+                ans_val = ""
+                phone_val = ""
+                if rec_opt == "Recovery Question":
+                    q_list = [
+                        "What is your favorite comfort food?",
+                        "What is the name of your first pet?",
+                        "What city were you born in?",
+                        "What was your childhood nickname?",
+                        "What is your secret safe word or lucky charm?"
+                    ]
+                    sel_q_val = st.selectbox("Select Security Question", q_list, key="pin_sel_q_new")
+                    ans_val = st.text_input("Security Answer", type="password", key="pin_ans_new", placeholder="Answer used for PIN recovery")
+                else:
+                    phone_val = st.text_input("Recovery Phone Number", placeholder="+1 (555) 000-0000", key="pin_phone_new")
+                
+                st.markdown("<div style='margin-top: 8px;'></div>", unsafe_allow_html=True)
+                if st.button("➕ Create New PIN", key="btn_do_create_pin", type="primary", use_container_width=True):
+                    if not p_new1 or not p_new2:
+                        st.error("Please enter and confirm your new PIN.")
+                    elif p_new1 != p_new2:
+                        st.error("PINs do not match.")
+                    elif rec_opt == "Recovery Question" and not ans_val.strip():
+                        st.error("Please provide a recovery answer.")
+                    elif rec_opt == "Recovery Phone Number" and not phone_val.strip():
+                        st.error("Please provide a recovery phone number.")
+                    else:
+                        rtype = "question" if rec_opt == "Recovery Question" else "phone"
+                        db.set_user_security_v2(user_id, p_new1, recovery_type=rtype, recovery_question=sel_q_val, recovery_answer=ans_val, recovery_phone=phone_val)
+                        st.session_state[f"auth_unlocked_{user_id}"] = True
+                        st.success("✅ New PIN created successfully!")
+                        st.session_state["acc_window_view"] = "main"
+                        st.rerun()
+            else:
+                # PIN is already set: Show "Set new pin" and "Create/Reset new pin" options
+                st.markdown("<div style='background: #dcfce7; border: 1px solid #86efac; border-radius: 6px; padding: 4px 8px; font-size: 0.78rem; color: #15803d; font-weight: 600; margin-bottom: 8px;'>🔒 PIN Protection Active</div>", unsafe_allow_html=True)
+                
+                pin_action = st.radio("Choose Action", ["Set New PIN", "Reset / Create New PIN", "Remove PIN"], horizontal=True, label_visibility="collapsed", key="pin_set_action_radio")
+                
+                if pin_action == "Set New PIN":
+                    p_old = st.text_input("Current PIN", type="password", key="pin_upd_old", placeholder="Enter current PIN")
+                    p_up1 = st.text_input("New PIN", type="password", key="pin_upd_p1", placeholder="Enter new PIN")
+                    p_up2 = st.text_input("Confirm New PIN", type="password", key="pin_upd_p2", placeholder="Confirm new PIN")
+                    
+                    rec_choice_upd = st.radio("Recovery Option", ["Recovery Question", "Recovery Phone Number"], index=0 if rec_type == "question" else 1, horizontal=True, key="pin_upd_rec_choice")
+                    
+                    sel_q_upd = ""
+                    ans_upd = ""
+                    phone_upd = ""
+                    if rec_choice_upd == "Recovery Question":
+                        q_list = [
+                            "What is your favorite comfort food?",
+                            "What is the name of your first pet?",
+                            "What city were you born in?",
+                            "What was your childhood nickname?",
+                            "What is your secret safe word or lucky charm?"
+                        ]
+                        sel_q_upd = st.selectbox("Security Question", q_list, index=q_list.index(saved_q) if saved_q in q_list else 0, key="pin_upd_q")
+                        ans_upd = st.text_input("New Recovery Answer (optional)", type="password", key="pin_upd_ans", placeholder="Optional new answer")
+                    else:
+                        phone_upd = st.text_input("Recovery Phone Number", value=saved_phone, placeholder="+1 (555) 000-0000", key="pin_upd_phone")
+                        
+                    if st.button("🔑 Set New PIN", key="btn_do_set_new_pin", type="primary", use_container_width=True):
+                        ok, _, _ = db.verify_user_login(username, p_old)
+                        if not ok:
+                            st.error("Current PIN is incorrect.")
+                        elif not p_up1 or not p_up2:
+                            st.error("New PIN cannot be empty.")
+                        elif p_up1 != p_up2:
+                            st.error("New PINs do not match.")
+                        else:
+                            rtype = "question" if rec_choice_upd == "Recovery Question" else "phone"
+                            db.set_user_security_v2(user_id, p_up1, recovery_type=rtype, recovery_question=sel_q_upd, recovery_answer=ans_upd, recovery_phone=phone_upd)
+                            st.success("✅ PIN updated successfully!")
+                            st.session_state["acc_window_view"] = "main"
+                            st.rerun()
+                            
+                elif pin_action == "Reset / Create New PIN":
+                    st.caption("Recover using your security question or phone:")
+                    if rec_type == "phone" and saved_phone:
+                        st.caption(f"Recovery Phone on file: `{saved_phone[:4]}...{saved_phone[-4:]}`")
+                        ph_ans = st.text_input("Enter Full Phone Number to Verify", key="pin_rst_phone_in", placeholder="Verify recovery phone")
+                    else:
+                        st.caption(f"Security Question: **{saved_q}**")
+                        ph_ans = st.text_input("Answer to Security Question", type="password", key="pin_rst_ans_in", placeholder="Enter answer")
+                        
+                    rst_p1 = st.text_input("New PIN", type="password", key="pin_rst_p1", placeholder="New PIN")
+                    rst_p2 = st.text_input("Confirm New PIN", type="password", key="pin_rst_p2", placeholder="Confirm new PIN")
+                    
+                    if st.button("➕ Reset & Create New PIN", key="btn_do_reset_pin", type="primary", use_container_width=True):
+                        if not rst_p1 or rst_p1 != rst_p2:
+                            st.error("Please enter matching new PINs.")
+                        else:
+                            if rec_type == "phone":
+                                if ph_ans.strip() != saved_phone.strip():
+                                    st.error("Phone number does not match recovery record.")
+                                else:
+                                    db.set_user_pin(user_id, rst_p1)
+                                    st.success("✅ PIN reset successfully!")
+                                    st.session_state["acc_window_view"] = "main"
+                                    st.rerun()
+                            else:
+                                ok, r_msg = db.reset_user_pin_with_recovery(user_id, ph_ans.strip(), rst_p1)
+                                if ok:
+                                    st.success(f"✅ {r_msg}")
+                                    st.session_state["acc_window_view"] = "main"
+                                    st.rerun()
+                                else:
+                                    st.error(r_msg)
+                                    
+                elif pin_action == "Remove PIN":
+                    rem_p = st.text_input("Enter PIN to confirm removal", type="password", key="pin_rem_input")
+                    if st.button("Disable PIN Protection", key="btn_do_disable_pin", use_container_width=True):
+                        ok, _, _ = db.verify_user_login(username, rem_p)
+                        if ok:
+                            db.remove_user_pin(user_id)
+                            st.info("PIN lock disabled.")
+                            st.session_state["acc_window_view"] = "main"
+                            st.rerun()
+                        else:
+                            st.error("Incorrect PIN.")
+
+        # -------------------------------------------------------------
+        # VIEW 3: Settings Window
+        # -------------------------------------------------------------
+        elif acc_view == "settings":
+            s_hdr1, s_hdr2 = st.columns([1.2, 3])
+            with s_hdr1:
+                if st.button("◀ Back", key="btn_settings_back", use_container_width=True):
+                    st.session_state["acc_window_view"] = "main"
+                    st.rerun()
+            with s_hdr2:
+                st.markdown("<div style='text-align: right; font-weight: 700; font-size: 1.05rem; color: #1e293b;'>⚙️ Settings</div>", unsafe_allow_html=True)
+            st.markdown("---")
+            
+            set_tabs = st.tabs(["🎨 Background Color", "🌐 Language", "⏰ Reminders"])
+            
+            # Tab 1: Background Color / Theme
+            with set_tabs[0]:
+                st.caption("Change the background color & theme of the app:")
+                theme_keys = list(THEMES.keys())
+                cur_th = st.session_state.get("app_bg_theme", "Blush Rose")
+                idx_th = theme_keys.index(cur_th) if cur_th in theme_keys else 0
+                
+                sel_theme = st.selectbox("Select Background Color / Theme", theme_keys, index=idx_th, key="sel_app_theme")
+                
+                # Theme preview badge
+                th_preview = THEMES[sel_theme]
+                st.markdown(f"""
+                <div style="background: {th_preview['bg_gradient']}; border: 1.5px solid #cbd5e1; border-radius: 8px; padding: 10px; text-align: center; margin-top: 6px; margin-bottom: 10px;">
+                    <span style="font-weight: 700; color: #1e293b; font-size: 0.88rem;">{th_preview['name']}</span>
+                </div>
+                """, unsafe_allow_html=True)
+                
+                if st.button("🎨 Apply Background Color", key="btn_apply_theme", type="primary", use_container_width=True):
+                    st.session_state["app_bg_theme"] = sel_theme
+                    db.save_user_app_settings(user_id, sel_theme, st.session_state.get("app_language", "English"), st.session_state.get("app_reminders", {}))
+                    st.success(f"Applied {sel_theme} theme!")
+                    st.rerun()
+                    
+            # Tab 2: Language
+            with set_tabs[1]:
+                st.caption("Change language of the app:")
+                lang_keys = list(TRANSLATIONS.keys())
+                cur_ln = st.session_state.get("app_language", "English")
+                idx_ln = lang_keys.index(cur_ln) if cur_ln in lang_keys else 0
+                
+                sel_lang = st.selectbox("Select Language", lang_keys, index=idx_ln, key="sel_app_language")
+                
+                if st.button("🌐 Apply Language", key="btn_apply_language", type="primary", use_container_width=True):
+                    st.session_state["app_language"] = sel_lang
+                    db.save_user_app_settings(user_id, st.session_state.get("app_bg_theme", "Blush Rose"), sel_lang, st.session_state.get("app_reminders", {}))
+                    st.success(f"Language changed to {sel_lang}!")
+                    st.rerun()
+                    
+            # Tab 3: Reminders for Different Stages of Period
+            with set_tabs[2]:
+                st.caption("Create reminders for your different stages of period:")
+                rem_data = st.session_state.get("app_reminders", {})
+                
+                # 1. Period Approaching
+                r_period_on = st.toggle("🩸 Period Approaching Reminder", value=rem_data.get("period_approaching", True), key="r_tog_period")
+                r_period_days = st.slider("Notify how many days before?", min_value=1, max_value=5, value=rem_data.get("period_days_before", 2), key="r_slide_period")
+                r_period_note = st.text_input("Self-care note", value=rem_data.get("period_note", "Hydrate well and rest."), key="r_note_period")
+                st.markdown("---")
+                
+                # 2. Fertile Window
+                r_fertile_on = st.toggle("🌱 Fertile Window Reminder", value=rem_data.get("fertile_window", True), key="r_tog_fertile")
+                r_fertile_note = st.text_input("Fertility stage note", value=rem_data.get("fertile_note", "High fertility window starts."), key="r_note_fertile")
+                st.markdown("---")
+                
+                # 3. Ovulation Peak Day
+                r_ov_on = st.toggle("🟣 Ovulation Peak Day Reminder", value=rem_data.get("ovulation_peak", True), key="r_tog_ov")
+                r_ov_note = st.text_input("Ovulation peak note", value=rem_data.get("ovulation_note", "Ovulation peak today - peak vitality!"), key="r_note_ov")
+                st.markdown("---")
+                
+                # 4. PMS / Luteal Phase Gentle Care
+                r_pms_on = st.toggle("🌙 PMS Gentle Care Reminder", value=rem_data.get("pms_care", True), key="r_tog_pms")
+                r_pms_note = st.text_input("PMS comfort note", value=rem_data.get("pms_note", "PMS window: magnesium, light yoga & rest."), key="r_note_pms")
+                st.markdown("---")
+                
+                # 5. Daily Log Check-in
+                r_daily_on = st.toggle("💊 Daily Symptom & Mood Reminder", value=rem_data.get("daily_log", True), key="r_tog_daily")
+                r_daily_time = st.selectbox("Preferred daily reminder time", ["08:00 AM", "12:00 PM", "06:00 PM", "08:00 PM", "10:00 PM"], index=3, key="r_sel_daily_time")
+                
+                st.markdown("<div style='margin-top: 10px;'></div>", unsafe_allow_html=True)
+                if st.button("💾 Save All Reminders", key="btn_save_reminders", type="primary", use_container_width=True):
+                    new_rems = {
+                        "period_approaching": r_period_on,
+                        "period_days_before": r_period_days,
+                        "period_note": r_period_note,
+                        "fertile_window": r_fertile_on,
+                        "fertile_note": r_fertile_note,
+                        "ovulation_peak": r_ov_on,
+                        "ovulation_note": r_ov_note,
+                        "pms_care": r_pms_on,
+                        "pms_note": r_pms_note,
+                        "daily_log": r_daily_on,
+                        "daily_time": r_daily_time
+                    }
+                    st.session_state["app_reminders"] = new_rems
+                    db.save_user_app_settings(user_id, st.session_state.get("app_bg_theme", "Blush Rose"), st.session_state.get("app_language", "English"), new_rems)
+                    st.success("✅ Reminders saved successfully!")
+                    st.rerun()
+
 # ---------------------------------------------------------
 # Main App Header & Relax Branding
 # ---------------------------------------------------------
-top_bar_col1, top_bar_col2 = st.columns([2.5, 1.5])
+top_bar_col1, top_bar_col2 = st.columns([2.2, 1.8])
 
 with top_bar_col1:
-    st.markdown("""
+    cur_lang_code = st.session_state.get("app_language", "English")
+    t_app = TRANSLATIONS.get(cur_lang_code, TRANSLATIONS["English"])
+    st.markdown(f"""
     <div style="margin-top: 2px; margin-bottom: 4px; display: flex; align-items: center; height: 100%;">
-        <span style="font-size: 1.25rem; font-weight: 700; color: #1e293b;">🌸 Relax</span>
+        <span style="font-size: 1.25rem; font-weight: 700; color: #1e293b;">🌸 {t_app.get('app_title', 'Relax')}</span>
     </div>
     """, unsafe_allow_html=True)
 
 with top_bar_col2:
     with st.container(key="top_actions_bar"):
-        diet_col, acc_col = st.columns([1, 1], gap="small")
+        diet_col, notif_col, acc_col = st.columns([1, 1, 1], gap="small")
         with diet_col:
             render_diet_notif_popover(phase_name, "Diet", container_key="diet_notif_top")
+        with notif_col:
+            render_notification_popover(phase_name, days_to_next_period, active_cycle['Next period'])
         with acc_col:
-            with st.popover("", icon=":material/person:", help="Account"):
-                st.markdown(f"<div style='font-size:1.15rem; font-weight:700; color:#1e293b; margin-bottom:2px;'>👤 {username}</div>", unsafe_allow_html=True)
-                st.caption(f"Profile: **{username}** &bull; {len(user_logs)} cycles logged")
-                st.markdown("---")
-            
-                # Security & PIN info
-                sec_info = db.get_user_security_info(user_id)
-                has_pin = sec_info["has_pin"]
-                saved_q = sec_info["recovery_question"] or "What is your favorite comfort food?"
-                
-                q_options = [
-                    "What is your favorite comfort food?",
-                    "What is the name of your first pet?",
-                    "What city were you born in?",
-                    "What was your childhood nickname?",
-                    "What is your secret safe word or lucky charm?"
-                ]
-                if saved_q and saved_q not in q_options:
-                    q_options.insert(0, saved_q)
+            render_account_window()
 
-                # 1. Set PIN / PIN Security Section
-                pin_label = "🔒 Set PIN" if not has_pin else "🔑 PIN Security"
-                with st.expander(pin_label, expanded=False):
-                    if not has_pin:
-                        st.caption("Protect private records by setting a PIN:")
-                        new_p1 = st.text_input("New PIN", type="password", key="acc_set_new_p1", placeholder="Enter new PIN")
-                        new_p2 = st.text_input("Confirm PIN", type="password", key="acc_set_new_p2", placeholder="Confirm new PIN")
-                        sel_q = st.selectbox("Security Question", q_options, key="acc_set_sel_q")
-                        rec_ans = st.text_input("Recovery Answer", type="password", key="acc_set_rec_ans", placeholder="Answer used for PIN recovery")
-                        if st.button("🔒 Save PIN", key="acc_btn_save_pin", use_container_width=True):
-                            if not new_p1 or not new_p2:
-                                st.error("Please enter and confirm your PIN.")
-                            elif new_p1 != new_p2:
-                                st.error("PINs do not match.")
-                            elif not rec_ans.strip():
-                                st.error("Please provide a recovery answer.")
-                            else:
-                                db.set_user_security(user_id, new_p1, sel_q, rec_ans.strip())
-                                st.session_state[f"auth_unlocked_{user_id}"] = True
-                                st.success("✅ PIN activated!")
-                                st.rerun()
-                    else:
-                        st.markdown("<div style='background:#dcfce7; border: 1px solid #86efac; border-radius:6px; padding:4px 8px; font-size:0.78rem; color:#15803d; font-weight:600; margin-bottom:6px;'>🔒 PIN Protection Active</div>", unsafe_allow_html=True)
-                        sec_action = st.radio(
-                            "Security Action",
-                            ["Change PIN", "Forgot PIN", "Remove PIN"],
-                            horizontal=True,
-                            label_visibility="collapsed",
-                            key="acc_sec_radio_action"
-                        )
-                        
-                        if sec_action == "Change PIN":
-                            chg_old = st.text_input("Current PIN", type="password", key="acc_chg_old", placeholder="Current PIN")
-                            c_p1, c_p2 = st.columns(2)
-                            with c_p1:
-                                chg_p1 = st.text_input("New PIN", type="password", key="acc_chg_p1", placeholder="New PIN")
-                            with c_p2:
-                                chg_p2 = st.text_input("Confirm PIN", type="password", key="acc_chg_p2", placeholder="Confirm PIN")
-                            chg_q = st.selectbox("Security Question", q_options, index=q_options.index(saved_q) if saved_q in q_options else 0, key="acc_chg_q")
-                            chg_ans = st.text_input("New Recovery Answer (optional)", type="password", key="acc_chg_ans", placeholder="Optional new answer")
-                            if st.button("🔄 Update PIN", key="acc_btn_update_pin", use_container_width=True):
-                                ok, _, _ = db.verify_user_login(username, chg_old)
-                                if not ok:
-                                    st.error("Current PIN is incorrect.")
-                                elif not chg_p1 or not chg_p2:
-                                    st.error("New PIN cannot be empty.")
-                                elif chg_p1 != chg_p2:
-                                    st.error("New PINs do not match.")
-                                else:
-                                    if chg_ans.strip():
-                                        db.set_user_security(user_id, chg_p1, chg_q, chg_ans.strip())
-                                    else:
-                                        db.set_user_pin(user_id, chg_p1)
-                                    st.success("✅ PIN updated!")
-                                    st.rerun()
-                        elif sec_action == "Forgot PIN":
-                            st.caption(f"**Security Question:** {saved_q}")
-                            rec_in_ans = st.text_input("Answer to Security Question", type="password", key="acc_rec_in_ans", placeholder="Enter answer")
-                            r1, r2 = st.columns(2)
-                            with r1:
-                                reset_p1 = st.text_input("New PIN", type="password", key="acc_reset_p1", placeholder="New PIN")
-                            with r2:
-                                reset_p2 = st.text_input("Confirm PIN", type="password", key="acc_reset_p2", placeholder="Confirm PIN")
-                            if st.button("🔑 Reset PIN", key="acc_btn_rec_reset", use_container_width=True):
-                                if not reset_p1 or reset_p1 != reset_p2:
-                                    st.error("Please enter matching new PINs.")
-                                else:
-                                    ok, r_msg = db.reset_user_pin_with_recovery(user_id, rec_in_ans.strip(), reset_p1)
-                                    if ok:
-                                        st.session_state[f"auth_unlocked_{user_id}"] = True
-                                        st.success(f"✅ {r_msg}")
-                                        st.rerun()
-                                    else:
-                                        st.error(r_msg)
-                        elif sec_action == "Remove PIN":
-                            rm1, rm2 = st.columns([1.5, 1])
-                            with rm1:
-                                rem_pin = st.text_input("Enter PIN", type="password", key="acc_rem_pin", label_visibility="collapsed", placeholder="Enter PIN")
-                            with rm2:
-                                if st.button("Disable PIN", key="acc_btn_rem_pin", use_container_width=True):
-                                    ok, _, _ = db.verify_user_login(username, rem_pin)
-                                    if ok:
-                                        db.remove_user_pin(user_id)
-                                        st.info("PIN disabled.")
-                                        st.rerun()
-                                    else:
-                                        st.error("Incorrect PIN.")
-
-                # 2. Settings Section
-                with st.expander("⚙️ Setting", expanded=False):
-                    st.markdown(f"• **Typical Cycle Length:** `{current_user['typical_cycle_length']} days`")
-                    st.markdown(f"• **Period Duration:** `{current_user['typical_period_length']} days`")
-                    st.markdown(f"• **Recorded Cycles:** `{len(user_logs)} logs in database`")
-                    st.markdown(f"• **Predictability:** `{health_res['predictability_rating']}`")
-                    st.markdown(f"• **Thyroid Status:** `{selected_thyroid}`")
-                    st.markdown(f"• **Health Conditions:** `{', '.join(selected_conditions) if selected_conditions else 'None'}`")
-                    st.markdown(f"• **Stress Level:** `{selected_stress}`")
-                    st.caption("💡 Tip: Use the left sidebar to edit cycle duration, thyroid, or health conditions anytime.")
 
 tracked_note = ""
 if (today - start_date).days > 45:
@@ -1964,7 +2492,33 @@ if st.session_state["active_nav"] in ["📅", "📅 Calendar"]:
     center_y = int(st.session_state["cal_center_year"])
     center_m = int(st.session_state["cal_center_month"])
 
-    # Year Selector Pills & Quick Month Navigation (2020 to 2035)
+    # Calculate continuous 3-month window centered on active month
+    prev_m = center_m - 1
+    prev_y = center_y
+    if prev_m < 1:
+        prev_m = 12
+        prev_y -= 1
+
+    next_m = center_m + 1
+    next_y = center_y
+    if next_m > 12:
+        next_m = 1
+        next_y += 1
+
+    scroll_months = [(prev_y, prev_m), (center_y, center_m), (next_y, next_m)]
+
+    # Render months inside a smooth horizontally scrollable container (3 months: Past, Current/Selected, Future)
+    month_cards_html = []
+    for year, month in scroll_months:
+        card_html = calendar_html(year, month, events, selected_date=selected_date_cal)
+        is_cur = (year == center_y and month == center_m)
+        item_id = "id='cal-current-month'" if is_cur else ""
+        month_cards_html.append(f"<div class='calendar-scroll-item' {item_id}>{card_html}</div>")
+
+    combined_scroll_html = f"<div class='calendar-scroll-wrapper' id='cal-scroll-wrapper'>{''.join(month_cards_html)}</div>"
+    st.markdown(combined_scroll_html, unsafe_allow_html=True)
+
+    # Year Selector Pills & Quick Month Navigation (2020 to 2035) - Placed under the calendar
     nav_c1, nav_c2 = st.columns([3.5, 1.5])
     with nav_c1:
         years_list = list(range(2020, 2036))
@@ -2009,32 +2563,6 @@ if st.session_state["active_nav"] in ["📅", "📅 Calendar"]:
                     st.session_state["cal_center_month"] = nm
                     st.session_state["cal_center_year"] = min(years_list[-1], ny)
                     st.rerun()
-
-    # Calculate continuous 3-month window centered on active month
-    prev_m = center_m - 1
-    prev_y = center_y
-    if prev_m < 1:
-        prev_m = 12
-        prev_y -= 1
-
-    next_m = center_m + 1
-    next_y = center_y
-    if next_m > 12:
-        next_m = 1
-        next_y += 1
-
-    scroll_months = [(prev_y, prev_m), (center_y, center_m), (next_y, next_m)]
-
-    # Render months inside a smooth horizontally scrollable container (3 months: Past, Current/Selected, Future)
-    month_cards_html = []
-    for year, month in scroll_months:
-        card_html = calendar_html(year, month, events, selected_date=selected_date_cal)
-        is_cur = (year == center_y and month == center_m)
-        item_id = "id='cal-current-month'" if is_cur else ""
-        month_cards_html.append(f"<div class='calendar-scroll-item' {item_id}>{card_html}</div>")
-
-    combined_scroll_html = f"<div class='calendar-scroll-wrapper' id='cal-scroll-wrapper'>{''.join(month_cards_html)}</div>"
-    st.markdown(combined_scroll_html, unsafe_allow_html=True)
 
     # 3. Interactive Calendar Date Log & Cycle Update (Always shown for selected date)
     st.markdown("<div id='log-update-section' style='padding-top: 14px;'></div>", unsafe_allow_html=True)
@@ -2625,87 +3153,90 @@ elif st.session_state["active_nav"] in ["📝", "📝 Symptoms Update"]:
 
 # ---------------------------------------------------------
 # Database Management, Data Portability & Cloud Sync
+# (Host Laptop ONLY & Krishna Account ONLY - Completely hidden for all other devices and users)
 # ---------------------------------------------------------
-st.markdown("---")
-st.subheader("💾 My Database & Data Backups")
-st.caption(f"All cycle history, personal health conditions, and daily symptoms for **{username}** are persistently saved in the database.")
+if is_local_host_device() and username.lower() == "krishna":
+    st.markdown("---")
+    st.subheader("💾 My Database & Data Backups")
+    st.caption(f"All cycle history, personal health conditions, and daily symptoms for **{username}** are persistently saved in the database.")
 
-db_stats = db.get_database_stats()
-db_col1, db_col2, db_col3, db_col4 = st.columns(4)
-db_col1.metric("Database File", db_stats["database_file"], help="Persistent SQLite database file stored on disk.")
-db_col2.metric("Cycles Saved", f"{len(user_logs)} cycles", help="Number of period start dates saved in database for this account.")
-db_col3.metric("Symptoms Logged", f"{len(user_symptoms)} records", help="Daily symptoms, moods, and energy logs saved in database.")
-db_col4.metric("Database Status", "Connected 🟢", help="All changes auto-save automatically in real-time.")
+    db_stats = db.get_database_stats()
+    db_col1, db_col2, db_col3, db_col4 = st.columns(4)
+    db_col1.metric("Database File", db_stats["database_file"], help="Persistent SQLite database file stored on disk.")
+    db_col2.metric("Cycles Saved", f"{len(user_logs)} cycles", help="Number of period start dates saved in database for this account.")
+    db_col3.metric("Symptoms Logged", f"{len(user_symptoms)} records", help="Daily symptoms, moods, and energy logs saved in database.")
+    db_col4.metric("Database Status", "Connected 🟢", help="All changes auto-save automatically in real-time.")
 
-with st.expander("📦 Data Portability: Download Backup or Restore Data", expanded=False):
-    exp_col, imp_col = st.columns(2)
-    with exp_col:
-        st.markdown("#### 📥 Export My Complete Health Record")
-        st.write("Download all your historical cycle dates, daily symptoms, moods, and health conditions as a JSON file.")
-        user_backup = db.export_user_data(user_id)
-        backup_json_str = json.dumps(user_backup, indent=2)
-        st.download_button(
-            label="💾 Download Backup (.json)",
-            data=backup_json_str,
-            file_name=f"Relax_Backup_{username}_{date.today().strftime('%Y%m%d')}.json",
-            mime="application/json",
-            type="primary"
-        )
-        st.caption("You can save this file as a personal backup or import it onto another computer.")
+    with st.expander("📦 Data Portability: Download Backup or Restore Data", expanded=False):
+        exp_col, imp_col = st.columns(2)
+        with exp_col:
+            st.markdown("#### 📥 Export My Complete Health Record")
+            st.write("Download all your historical cycle dates, daily symptoms, moods, and health conditions as a JSON file.")
+            user_backup = db.export_user_data(user_id)
+            backup_json_str = json.dumps(user_backup, indent=2)
+            st.download_button(
+                label="💾 Download Backup (.json)",
+                data=backup_json_str,
+                file_name=f"Relax_Backup_{username}_{date.today().strftime('%Y%m%d')}.json",
+                mime="application/json",
+                type="primary"
+            )
+            st.caption("You can save this file as a personal backup or import it onto another computer.")
 
-    with imp_col:
-        st.markdown("#### 📤 Restore / Import Backup")
-        st.write("Upload a previously downloaded Relax backup file to restore all your cycles and symptom records.")
-        uploaded_backup = st.file_uploader("Choose Relax backup JSON file", type=["json"], key="backup_uploader")
-        if uploaded_backup is not None:
-            try:
-                backup_data = json.load(uploaded_backup)
-                if st.button("🔄 Confirm & Import to Database"):
-                    success, msg = db.import_user_data(user_id, backup_data)
-                    if success:
-                        st.success(msg)
-                        st.rerun()
-                    else:
-                        st.error(msg)
-            except Exception as e:
-                st.error(f"Error reading backup file: {e}")
+        with imp_col:
+            st.markdown("#### 📤 Restore / Import Backup")
+            st.write("Upload a previously downloaded Relax backup file to restore all your cycles and symptom records.")
+            uploaded_backup = st.file_uploader("Choose Relax backup JSON file", type=["json"], key="backup_uploader")
+            if uploaded_backup is not None:
+                try:
+                    backup_data = json.load(uploaded_backup)
+                    if st.button("🔄 Confirm & Import to Database"):
+                        success, msg = db.import_user_data(user_id, backup_data)
+                        if success:
+                            st.success(msg)
+                            st.rerun()
+                        else:
+                            st.error(msg)
+                except Exception as e:
+                    st.error(f"Error reading backup file: {e}")
 
-with st.expander("🔒 Account Privacy & Security PIN", expanded=False):
-    pin_col1, pin_col2 = st.columns(2)
-    with pin_col1:
-        st.write("Set or update a 4-digit PIN / password to lock your account on this device so nobody else can view your personal cycle and symptom logs.")
-        new_pin_input = st.text_input("New PIN / Password", type="password", key="new_pin_field", placeholder="e.g. 1234")
-        if st.button("🔒 Save Security PIN"):
-            if new_pin_input.strip():
-                db.set_user_pin(user_id, new_pin_input.strip())
-                st.success("Security PIN saved! Your profile is now locked.")
-                st.rerun()
+    with st.expander("🔒 Account Privacy & Security PIN", expanded=False):
+        pin_col1, pin_col2 = st.columns(2)
+        with pin_col1:
+            st.write("Set or update a 4-digit PIN / password to lock your account on this device so nobody else can view your personal cycle and symptom logs.")
+            new_pin_input = st.text_input("New PIN / Password", type="password", key="new_pin_field", placeholder="e.g. 1234")
+            if st.button("🔒 Save Security PIN"):
+                if new_pin_input.strip():
+                    db.set_user_pin(user_id, new_pin_input.strip())
+                    st.success("Security PIN saved! Your profile is now locked.")
+                    st.rerun()
+                else:
+                    st.warning("Please enter a valid PIN.")
+        with pin_col2:
+            if user_has_pin:
+                st.info(f"✅ Account **{username}** is protected by a PIN.")
+                if st.button("🔓 Remove PIN Lock"):
+                    db.set_user_pin(user_id, "")
+                    st.success("PIN lock removed.")
+                    st.rerun()
             else:
-                st.warning("Please enter a valid PIN.")
-    with pin_col2:
-        if user_has_pin:
-            st.info(f"✅ Account **{username}** is protected by a PIN.")
-            if st.button("🔓 Remove PIN Lock"):
-                db.set_user_pin(user_id, "")
-                st.success("PIN lock removed.")
-                st.rerun()
-        else:
-            st.caption("No PIN currently set. Your account can be accessed directly from the profile selector.")
+                st.caption("No PIN currently set. Your account can be accessed directly from the profile selector.")
 
-with st.expander("🌐 Cloud Database Deployment Guide (PostgreSQL / Supabase)", expanded=False):
-    st.markdown("""
-    #### How to Deploy Relax with a Permanent Cloud Database:
-    When hosting Relax on **Streamlit Community Cloud** or any cloud container:
-    1. **Local SQLite (`relax.db`)** works great locally on your computer.
-    2. For a cloud deployment shared across multiple phones, you can link a **free PostgreSQL database** (such as [Supabase](https://supabase.com) or [Neon](https://neon.tech)):
-       - Create a free project on Supabase or Neon.
-       - Copy your database connection string: `postgresql://user:password@host/dbname`.
-       - In Streamlit Cloud, add it under **Settings > Secrets**:
-         ```toml
-         DATABASE_URL = "postgresql://user:password@host:5432/postgres"
-         ```
-       - Relax will automatically persist all user accounts in the cloud without local ephemeral file wipes!
-    """)
+    with st.expander("🌐 Cloud Database Deployment Guide (PostgreSQL / Supabase)", expanded=False):
+        st.markdown("""
+        #### How to Deploy Relax with a Permanent Cloud Database:
+        When hosting Relax on **Streamlit Community Cloud** or any cloud container:
+        1. **Local SQLite (`relax.db`)** works great locally on your computer.
+        2. For a cloud deployment shared across multiple phones, you can link a **free PostgreSQL database** (such as [Supabase](https://supabase.com) or [Neon](https://neon.tech)):
+           - Create a free project on Supabase or Neon.
+           - Copy your database connection string: `postgresql://user:password@host/dbname`.
+           - In Streamlit Cloud, add it under **Settings > Secrets**:
+             ```toml
+             DATABASE_URL = "postgresql://user:password@host:5432/postgres"
+             ```
+           - Relax will automatically persist all user accounts in the cloud without local ephemeral file wipes!
+        """)
+
 
 # ---------------------------------------------------------
 # Health Note & Disclaimer

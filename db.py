@@ -97,6 +97,16 @@ def init_db():
         cursor.execute("ALTER TABLE users ADD COLUMN recovery_question TEXT DEFAULT ''")
     if "recovery_answer_hash" not in existing_cols:
         cursor.execute("ALTER TABLE users ADD COLUMN recovery_answer_hash TEXT DEFAULT ''")
+    if "recovery_phone" not in existing_cols:
+        cursor.execute("ALTER TABLE users ADD COLUMN recovery_phone TEXT DEFAULT ''")
+    if "recovery_type" not in existing_cols:
+        cursor.execute("ALTER TABLE users ADD COLUMN recovery_type TEXT DEFAULT 'question'")
+    if "theme_color" not in existing_cols:
+        cursor.execute("ALTER TABLE users ADD COLUMN theme_color TEXT DEFAULT 'Blush Rose'")
+    if "language" not in existing_cols:
+        cursor.execute("ALTER TABLE users ADD COLUMN language TEXT DEFAULT 'English'")
+    if "reminders_json" not in existing_cols:
+        cursor.execute("ALTER TABLE users ADD COLUMN reminders_json TEXT DEFAULT '{}'")
 
     conn.commit()
     conn.close()
@@ -342,15 +352,70 @@ def get_user_security_info(user_id: int) -> Dict:
     """Retrieves security status for a user."""
     conn = get_connection()
     cursor = conn.cursor()
-    cursor.execute("SELECT pin_hash, recovery_question FROM users WHERE id = ?", (user_id,))
+    cursor.execute("SELECT pin_hash, recovery_question, recovery_phone, recovery_type FROM users WHERE id = ?", (user_id,))
     row = cursor.fetchone()
     conn.close()
     if not row:
-        return {"has_pin": False, "recovery_question": ""}
+        return {"has_pin": False, "recovery_question": "", "recovery_phone": "", "recovery_type": "question"}
+    cols = row.keys()
     return {
         "has_pin": bool(row["pin_hash"]),
-        "recovery_question": row["recovery_question"] or ""
+        "recovery_question": row["recovery_question"] or "",
+        "recovery_phone": row["recovery_phone"] if "recovery_phone" in cols and row["recovery_phone"] else "",
+        "recovery_type": row["recovery_type"] if "recovery_type" in cols and row["recovery_type"] else "question"
     }
+
+def set_user_security_v2(user_id: int, new_pin: str, recovery_type: str = "question", recovery_question: str = "", recovery_answer: str = "", recovery_phone: str = "") -> bool:
+    """Sets or updates PIN with choice of recovery question or phone number."""
+    conn = get_connection()
+    cursor = conn.cursor()
+    pin_h = hash_pin(new_pin) if new_pin else ""
+    ans_h = hash_pin(recovery_answer.strip().lower()) if recovery_answer.strip() else ""
+    phone_clean = recovery_phone.strip()
+    
+    cursor.execute("""
+    UPDATE users 
+    SET pin_hash = ?, recovery_type = ?, recovery_question = ?, recovery_answer_hash = ?, recovery_phone = ?
+    WHERE id = ?
+    """, (pin_h, recovery_type, recovery_question.strip(), ans_h, phone_clean, user_id))
+    conn.commit()
+    conn.close()
+    return True
+
+def get_user_app_settings(user_id: int) -> Dict:
+    """Retrieves theme, language, and reminders settings for a user."""
+    conn = get_connection()
+    cursor = conn.cursor()
+    cursor.execute("SELECT theme_color, language, reminders_json FROM users WHERE id = ?", (user_id,))
+    row = cursor.fetchone()
+    conn.close()
+    if not row:
+        return {"theme_color": "Blush Rose", "language": "English", "reminders": {}}
+    cols = row.keys()
+    theme = row["theme_color"] if "theme_color" in cols and row["theme_color"] else "Blush Rose"
+    lang = row["language"] if "language" in cols and row["language"] else "English"
+    import json
+    try:
+        reminders = json.loads(row["reminders_json"]) if "reminders_json" in cols and row["reminders_json"] else {}
+    except Exception:
+        reminders = {}
+    return {
+        "theme_color": theme,
+        "language": lang,
+        "reminders": reminders
+    }
+
+def save_user_app_settings(user_id: int, theme_color: str, language: str, reminders: Dict):
+    """Saves user theme, language, and stage reminders."""
+    import json
+    conn = get_connection()
+    cursor = conn.cursor()
+    rem_str = json.dumps(reminders)
+    cursor.execute("""
+    UPDATE users SET theme_color = ?, language = ?, reminders_json = ? WHERE id = ?
+    """, (theme_color, language, rem_str, user_id))
+    conn.commit()
+    conn.close()
 
 def export_user_data(user_id: int) -> Dict:
     """Exports all user data (profile, cycles, symptoms) to a structured dictionary for backup/JSON download."""
